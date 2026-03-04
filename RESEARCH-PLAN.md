@@ -300,7 +300,7 @@
 |---|------|--------|------|---------|
 | 0 | AI 時代程式碼最佳實踐 | — | ✅ 完成 | ~1000 行 |
 | 1 | Claude Code Skills 完全指南 | — | ✅ 完成 | ~1088 行 |
-| 2 | Agent Teams + Git Worktree | 極高 | ⬜ 待開始 | ~1000 行 |
+| 2 | Agent Teams + Git Worktree | 極高 | ✅ 完成 | ~883 行 |
 | 3 | Context Engineering 記憶架構 | 極高 | ⬜ 待開始 | ~1000 行 |
 | 4 | Plugins 生態系 | 高 | ⬜ 待開始 | ~900 行 |
 | 5 | Hooks 進階自動化 | 高 | ⬜ 待開始 | ~800 行 |
