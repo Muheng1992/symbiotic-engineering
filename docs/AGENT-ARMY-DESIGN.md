@@ -1,6 +1,6 @@
 # Agent Army 系統設計文件
 
-> **版本**: 1.3.0 | **最後更新**: 2026-03-04
+> **版本**: 1.4.0 | **最後更新**: 2026-03-04
 > **目標**: 讓單人開發者透過 Claude Code CLI 指揮 AI Agent 大軍，實現從規劃到部署的全自動化軟體開發流程
 
 ---
@@ -248,39 +248,58 @@ docs/                                  # 文件與報告（歷史保留）
 | 品質保證 | Hooks + Quality Gate Skill | 事件驅動、自動觸發 |
 | 報告儲存 | Git-tracked `docs/reports/` | 版本控制、歷史保留 |
 
-### 2.4 任務複雜度分級（v1.3 新增）
+### 2.4 任務複雜度分級 — 強制分級門檻（v1.3 新增，v1.4 強化）
 
-在啟動 Agent 前，先對任務進行 S/A/B/C 分級，避免小任務啟動完整大軍造成 token 浪費。
+在啟動 Agent 前，**強制**執行三步驟範圍分析（Impact Analysis → Complexity Scoring → Grade Assignment），輸出 Grading Card 後才允許進入下一階段。這不是建議性的 checklist，而是必須通過的 **GATE**。
+
+#### 分級流程
 
 ```mermaid
 graph TD
-    START[任務輸入] --> Q1{影響幾個檔案?}
+    START[任務輸入] --> IA["Step 1: Impact Analysis<br/>Grep + Glob + Read<br/>產出具體檔案清單"]
+    IA --> CS["Step 2: Complexity Scoring<br/>5 維度 × 0-2 分 = 0-10 分"]
+    CS --> GA["Step 3: Grade Assignment<br/>分數 → S/A/B/C"]
+    GA --> CARD["GATE: 輸出 Grading Card<br/>（未輸出 = 違反協議）"]
 
-    Q1 -->|1 個| S[S 級 — 直接做]
-    Q1 -->|1-3 個| A[A 級 — 最小團隊]
-    Q1 -->|4-15 個| Q2{需要架構設計?}
-    Q1 -->|15+ 個| C[C 級 — 完整大軍]
+    CARD --> Q{分數?}
+    Q -->|0| S["S 級 — STOP<br/>不 spawn agent，直接做"]
+    Q -->|1-3| A["A 級 — MAX 3 agents"]
+    Q -->|4-6| B["B 級 — MAX 7 agents"]
+    Q -->|7-10| C["C 級 — 無上限<br/>但每個 agent 必須 justify"]
 
-    Q2 -->|No| A
-    Q2 -->|Yes| B[B 級 — 標準團隊]
-
-    S --> S_TEAM["0 agents<br/>直接實作"]
-    A --> A_TEAM["2-3 agents<br/>implementer + tester"]
-    B --> B_TEAM["4-7 agents<br/>architect + impl(1-3) + tester + reviewer + documenter"]
-    C --> C_TEAM["9+ agents<br/>全員出動"]
-
+    style START fill:#e74,stroke:#c52,color:#fff
+    style CARD fill:#a49,stroke:#d27,color:#fff
     style S fill:#4a9,stroke:#2d7,color:#fff
     style A fill:#49a,stroke:#27d,color:#fff
     style B fill:#e96,stroke:#c74,color:#fff
     style C fill:#e74,stroke:#c52,color:#fff
 ```
 
-| 級別 | 範圍 | 檔案數 | Agent 數 | 文件策略 | Token 估算 |
-|------|------|--------|---------|---------|-----------|
-| **S** | 修 typo、改設定值 | 1 | 0 | 無需 | ~5K |
-| **A** | 小功能、修 bug | 1-3 | 2-3 | implementer 順手更新 | ~50-100K |
-| **B** | 新 API、模組重構 | 4-15 | 4-7 | 單一 documenter 統包 | ~200-400K |
-| **C** | 新子系統、大型重構 | 15+ | 9+ | documenter + reporter + doc-manager | ~500K-1M |
+#### 5 維度評分矩陣
+
+| 維度 | 0 分 | 1 分 | 2 分 |
+|------|------|------|------|
+| **File Count** | 1 個檔案 | 2-15 個檔案 | 15+ 個檔案 |
+| **Design Need** | 無新模式 | 延伸既有模式 | 全新架構/模組 |
+| **Security Risk** | 不碰 auth/crypto | 碰既有安全程式碼 | 新 auth/crypto 表面 |
+| **Integration Risk** | 單一模組變更 | 跨模組變更 | 跨服務/跨層 |
+| **API Surface** | 無 public API 變更 | 修改既有 API | 全新 public API |
+
+#### 分數 → 級別 → 硬上限
+
+| 分數 | 級別 | Agent 上限 | 文件策略 | Token 估算 |
+|------|------|-----------|---------|-----------|
+| **0** | **S — Trivial** | 0（直接做） | 無需 | ~5K |
+| **1-3** | **A — Small** | MAX 3 | implementer 順手更新 | ~50-100K |
+| **4-6** | **B — Medium** | MAX 7 | 單一 documenter 統包 | ~200-400K |
+| **7-10** | **C — Large** | 無上限（需 justify） | documenter + reporter + doc-manager | ~500K-1M |
+
+**HARD RULES**:
+- Score 0 → STOP，不 spawn 任何 agent
+- Score 1-3 → MAX 3 agents，想超過就重新誠實評分
+- Score 4-6 → MAX 7 agents，不拆分 reporter/doc-manager
+- Score 7-10 → 無上限，但 Grading Card 中必須逐一 justify 每個 agent
+- 未輸出 Grading Card 就進入 Phase 2 = 違反協議
 
 **成本最佳化規則**: 絕不使用 C 級團隊執行 B 級任務。額外 agent 的協調稅會抵消並行收益。
 
@@ -1087,4 +1106,4 @@ sequenceDiagram
 
 ---
 
-*Agent Army System v1.3.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army System v1.4.0 | Symbiotic Engineering | 2026-03-04*

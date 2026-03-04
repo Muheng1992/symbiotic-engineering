@@ -22,9 +22,91 @@ Before assembling, analyze the project:
 3. **Identify** the tech stack, patterns, and conventions
 4. **Read** the task/feature requirements from `$ARGUMENTS`
 
-## Phase 1: Mission Planning
+## Phase 1: Mandatory Scope Analysis (GATE — must complete before Phase 2)
 
-Based on the assessment, create a structured plan:
+**This phase is MANDATORY. You MUST complete all 3 steps and output the Grading Card before proceeding.**
+
+### Step 1: Impact Analysis
+
+Run these commands to gather concrete data:
+
+```
+1. Grep for keywords related to the task across the codebase
+   → Identify which files are relevant
+
+2. Glob to find existing files in the affected modules
+   → Count files that will be created or modified
+
+3. Read the key files to understand modification scope
+   → Determine if changes are trivial or structural
+```
+
+**Output a file list:**
+```markdown
+### Impact Analysis Results
+- Files to CREATE: [list with paths]
+- Files to MODIFY: [list with paths]
+- Files NOT to touch: [list]
+- **Total affected files: N**
+```
+
+### Step 2: Complexity Scoring
+
+Score each dimension (0-2 points):
+
+| Dimension | 0 pts | 1 pt | 2 pts |
+|-----------|-------|------|-------|
+| **File Count** | 1 file | 2-15 files | 15+ files |
+| **Design Need** | No new patterns | Extends existing pattern | New architecture/module |
+| **Security Risk** | No auth/crypto/user data | Touches existing security code | New auth/crypto surface |
+| **Integration Risk** | Single module change | Cross-module changes | Cross-service/cross-layer |
+| **API Surface** | No public API change | Modifies existing API | New public API |
+
+**Calculate total score (0-10):**
+
+### Step 3: Grade Assignment
+
+Map score to grade:
+
+| Score | Grade | Team Strategy |
+|-------|-------|---------------|
+| **0** | **S — Trivial** | No agents — do it directly |
+| **1-3** | **A — Small** | Minimal Team (2-3 agents) |
+| **4-6** | **B — Medium** | Standard Team (4-7 agents) |
+| **7-10** | **C — Large** | Full Army (9+ agents) |
+
+### REQUIRED OUTPUT: Grading Card
+
+**You MUST output this card before proceeding to Phase 2. This is the gate.**
+
+```markdown
+## Task Grading Card
+
+| Dimension | Score | Rationale |
+|-----------|-------|-----------|
+| File Count | X/2 | [N files: list the key ones] |
+| Design Need | X/2 | [why this score] |
+| Security Risk | X/2 | [why this score] |
+| Integration Risk | X/2 | [why this score] |
+| API Surface | X/2 | [why this score] |
+| **TOTAL** | **X/10** | |
+
+### Grade: [S / A / B / C]
+### Team Size: [N agents]
+### Agents to Spawn: [list]
+### Documentation Strategy: [inline / single documenter / full doc team]
+```
+
+**HARD RULES:**
+- **Score 0 → STOP.** Do not spawn any agents. Implement directly and return.
+- **Score 1-3 → MAX 3 agents.** If you find yourself wanting more, re-score honestly.
+- **Score 4-6 → MAX 7 agents.** No reporter or doc-manager as separate agents.
+- **Score 7-10 → No cap**, but justify each agent in the Grading Card.
+- **If you skip this phase or don't output the Grading Card, you are violating protocol.**
+
+## Phase 2: Mission Planning
+
+Based on the Grading Card, create a structured plan:
 
 ```markdown
 ## Mission: [Feature/Task Name]
@@ -32,16 +114,18 @@ Based on the assessment, create a structured plan:
 ### Objective
 [Clear statement of what needs to be built]
 
+### Grade: [from Grading Card]
+
 ### Scope
-- Files to create: [list]
-- Files to modify: [list]
+- Files to create: [from Impact Analysis]
+- Files to modify: [from Impact Analysis]
 - Files NOT to touch: [list]
 
 ### Team Composition
-[Which agents to spawn based on task complexity]
+[From Grading Card — must match the grade]
 
 ### Task Breakdown
-[5-15 independent, parallelizable tasks]
+[S: 1 task | A: 2-5 tasks | B: 5-10 tasks | C: 5-15 tasks]
 
 ### Dependencies
 [Which tasks must complete before others can start]
@@ -50,28 +134,9 @@ Based on the assessment, create a structured plan:
 [What must pass before the mission is complete]
 ```
 
-## Phase 1.5: Task Complexity Grading
+## Phase 3: Team Assembly
 
-**Before assembling, classify the task to determine the right team size:**
-
-| Grade | Scope | Files | Team Strategy |
-|-------|-------|-------|---------------|
-| **S — Trivial** | Single-line fix, config change, typo | 1 | No agents — do it directly |
-| **A — Small** | Bug fix, small feature, helper function | 1-3 | Minimal Team (2-3 agents) |
-| **B — Medium** | New endpoint, module refactor, integration | 4-15 | Standard Team (4-6 agents) |
-| **C — Large** | New subsystem, major refactor, cross-cutting | 15+ | Full Army (7-10 agents) |
-
-### Grading Checklist
-
-- [ ] Estimated file count? → Determines base grade
-- [ ] Needs architectural design? → Upgrade to B minimum
-- [ ] Touches auth/crypto/user data? → Add security-auditor
-- [ ] Multiple parallel implementers? → Add integrator
-- [ ] New public API surface? → Upgrade documentation level
-
-**If grade is S**: Skip team assembly entirely. Implement directly.
-
-## Phase 2: Team Assembly
+**Prerequisite**: Phase 1 Grading Card must be completed. Team size must match the assigned grade.
 
 Spawn the appropriate agents based on **task grade**:
 
@@ -127,7 +192,7 @@ Then spawn reviewer → Review
 /batch [instruction] — Auto-decomposes into 5-30 parallel units
 ```
 
-## Phase 3: Execution Orchestration
+## Phase 4: Execution Orchestration
 
 ### Step 1: Architecture (if needed)
 - Spawn `architect` agent
@@ -176,7 +241,7 @@ Then spawn reviewer → Review
 - Run full test suite
 - Verify build succeeds
 
-## Phase 4: Report & Handoff
+## Phase 5: Report & Handoff
 
 Generate a final mission report:
 
