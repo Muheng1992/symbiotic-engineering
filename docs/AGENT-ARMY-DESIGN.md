@@ -1,6 +1,6 @@
 # Agent Army 系統設計文件
 
-> **版本**: 1.4.0 | **最後更新**: 2026-03-04
+> **版本**: 1.5.0 | **最後更新**: 2026-03-04
 > **目標**: 讓單人開發者透過 Claude Code CLI 指揮 AI Agent 大軍，實現從規劃到部署的全自動化軟體開發流程
 
 ---
@@ -81,6 +81,7 @@ graph TB
         S4["/context-sync"]
         S5t["/tdd"]
         S6f["/fix"]
+        S7ts["/timesheet"]
     end
 
     subgraph "Orchestration Layer"
@@ -185,7 +186,7 @@ graph TB
 │   ├── integrator.md                  # 整合專家
 │   ├── doc-manager.md                 # 文件生命週期管理員
 │   └── reporter.md                    # 報告產生器
-├── skills/                            # 10 個核心 Skill（不含 setup）
+├── skills/                            # 11 個核心 Skill（不含 setup）
 │   ├── assemble/                      # Agent 大軍集結器
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -209,7 +210,9 @@ graph TB
 │   │   └── SKILL.md
 │   ├── tdd/                           # TDD 測試驅動開發
 │   │   └── SKILL.md
-│   └── fix/                           # 智慧問題修復
+│   ├── fix/                           # 智慧問題修復
+│   │   └── SKILL.md
+│   └── timesheet/                     # 工時分析與日報
 │       └── SKILL.md
 └── hooks/                             # 品質保證 Hooks
     └── scripts/
@@ -426,6 +429,7 @@ sequenceDiagram
 | `/retrospective` | 手動 (`/retrospective`) | Main context | Mission 回顧學習 |
 | `/tdd` | 手動 (`/tdd [feature]`) | Main context / Preloaded in tester | TDD Red-Green-Refactor 強制 |
 | `/fix` | 手動 (`/fix [error]`) | Main context | 智慧問題診斷與修復 |
+| `/timesheet` | 手動 (`/timesheet [time-range]`) | Main context | 工時分析與日報 |
 | `dev-standards` | 自動（Claude 判斷載入） | Preloaded in agents | 開發標準 |
 
 ### 4.3 Skill 與 Agent 的關係
@@ -443,6 +447,7 @@ graph TD
         S8[retrospective]
         S9[tdd]
         S10[fix]
+        S11[timesheet]
     end
 
     subgraph "Agents"
@@ -488,8 +493,11 @@ graph TD
     A1 -->|spawns| A9
     A1 -->|spawns| A10
 
+    S11 -.->|"standalone (no agent)"| S11
+
     style S1 fill:#e74,stroke:#c52,color:#fff
     style S5 fill:#4a9,stroke:#2d7,color:#fff
+    style S11 fill:#59b,stroke:#37a,color:#fff
 ```
 
 ---
@@ -939,7 +947,7 @@ graph TB
         subgraph "plugins/agent-army/"
             PJ[".claude-plugin/plugin.json"]
             AG["agents/ (10 agents)"]
-            SK["skills/ (11 skills)"]
+            SK["skills/ (12 skills)"]
             HK["hooks/hooks.json"]
             ST["settings.json"]
         end
@@ -977,7 +985,7 @@ plugins/agent-army/                    # Plugin Root
 │   ├── integrator.md
 │   ├── doc-manager.md
 │   └── reporter.md
-├── skills/                            # 10 Skills
+├── skills/                            # 12 Skills
 │   ├── assemble/                      # Agent army orchestrator
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -996,6 +1004,8 @@ plugins/agent-army/                    # Plugin Root
 │   ├── tdd/                           # TDD enforcement
 │   │   └── SKILL.md
 │   ├── fix/                           # Smart problem resolution
+│   │   └── SKILL.md
+│   ├── timesheet/                     # Work time analysis & daily report
 │   │   └── SKILL.md
 │   ├── dev-standards/                 # Coding standards (auto)
 │   │   ├── SKILL.md
@@ -1106,4 +1116,4 @@ sequenceDiagram
 
 ---
 
-*Agent Army System v1.4.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army System v1.5.0 | Symbiotic Engineering | 2026-03-04*

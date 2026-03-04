@@ -1,7 +1,7 @@
 # Agent Army — Claude Code Plugin
 
 > AI-powered software development team for Claude Code CLI.
-> 10 specialized agents + 10 skills covering the full SDLC with Clean Architecture enforcement.
+> 10 specialized agents + 12 skills covering the full SDLC with Clean Architecture enforcement.
 
 ## Quick Install
 
@@ -65,7 +65,7 @@ Add to your project's `.claude/settings.json`:
 | `doc-manager` | Document lifecycle management | sonnet |
 | `reporter` | Structured report generation | sonnet |
 
-### 10 Skills (Slash Commands)
+### 12 Skills (Slash Commands)
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
@@ -78,6 +78,8 @@ Add to your project's `.claude/settings.json`:
 | **Setup** | `/agent-army:setup [project-name]` | Initialize project for Agent Army |
 | **TDD** | `/agent-army:tdd [feature]` | TDD Red-Green-Refactor enforcement |
 | **Fix** | `/agent-army:fix [error]` | Smart problem resolution & diagnosis |
+| **Timesheet** | `/agent-army:timesheet [time-range]` | Work time analysis & daily report |
+| **Retrospective** | `/agent-army:retrospective` | Mission retrospective & self-improvement |
 | **Dev Standards** | *(auto-loaded)* | Clean Architecture & coding standards |
 
 ### Hooks
@@ -125,7 +127,7 @@ graph LR
 ```
 Agent Army Plugin
 ├── agents/           10 specialized agent definitions
-├── skills/           10 skills (slash commands)
+├── skills/           12 skills (slash commands)
 │   ├── assemble/     Full army orchestrator
 │   ├── sprint/       Sprint planning
 │   ├── quality-gate/ Quality checkpoints
@@ -134,6 +136,8 @@ Agent Army Plugin
 │   ├── code-review/  Code review orchestration
 │   ├── tdd/          TDD enforcement
 │   ├── fix/          Smart problem resolution
+│   ├── timesheet/    Work time analysis & daily report
+│   ├── retrospective/ Mission retrospective
 │   ├── setup/        Project initialization
 │   └── dev-standards/ Coding standards (auto-loaded)
 └── hooks/            Clean Architecture enforcement

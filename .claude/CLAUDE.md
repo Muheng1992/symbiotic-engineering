@@ -99,6 +99,7 @@ This project includes a multi-agent development system in `.claude/`:
 | `/retrospective` | Mission retrospective | `/retrospective` |
 | `/tdd` | TDD enforcement | `/tdd [feature description]` |
 | `/fix` | Smart problem resolution | `/fix [error or bug description]` |
+| `/timesheet` | Work time analysis & daily report | `/timesheet [time-range]` |
 | `dev-standards` | Coding standards (auto-loaded) | Automatic |
 
 ### Report Management
