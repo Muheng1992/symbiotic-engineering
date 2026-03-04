@@ -474,8 +474,8 @@ graph TD
 
     Q2 -->|1-3| SUB[Subagents<br/>background mode]
     Q2 -->|4-10| TEAM[Agent Teams<br/>shared task list]
-    Q2 -->|10-30| BATCH[/batch command<br/>git worktrees]
-    Q2 -->|30+| SPLIT[Split into<br/>multiple sprints]
+    Q2 -->|10-30| BATCH["/batch command<br/>git worktrees"]
+    Q2 -->|30+| SPLIT["Split into<br/>multiple sprints"]
 
     SUB --> MONITOR[Monitor via TaskList]
     TEAM --> MONITOR
