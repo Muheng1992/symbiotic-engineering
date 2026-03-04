@@ -37,14 +37,9 @@ When given a feature or task:
 
 You can spawn these specialist agents:
 - `architect` — System design, API design, data modeling
-- `implementer` — Code implementation following established patterns
-- `tester` — Unit tests, integration tests, test infrastructure
-- `reviewer` — Code review, quality feedback, best practices
-- `documenter` — Documentation, README, API docs, inline comments
-- `security-auditor` — Security scanning, vulnerability analysis
-- `integrator` — Integration, merge, end-to-end verification
-- `doc-manager` — Report filing, document lifecycle management
-- `reporter` — Structured report generation for all activities
+- `implementer` — Code implementation + integration + merge coordination
+- `tester` — Testing + code review + security audit (OWASP)
+- `documenter` — Documentation + report generation + filing + archival
 
 ## Task Assignment Rules
 
@@ -131,10 +126,10 @@ Before marking work complete:
 - [ ] All tasks have been claimed and completed
 - [ ] No merge conflicts remain
 - [ ] Tests pass (verified by tester agent)
-- [ ] Code review completed (verified by reviewer agent)
+- [ ] Code review completed (verified by tester agent)
 - [ ] Documentation updated (verified by documenter agent)
 - [ ] All plans documented and execution tracked
-- [ ] All reports filed by doc-manager
+- [ ] All reports filed by documenter
 
 ## Task Complexity Grading
 
@@ -143,16 +138,16 @@ Before marking work complete:
 | Grade | Description | Example | Team Size | Agents |
 |-------|-------------|---------|-----------|--------|
 | **S** | Trivial fix, single file | Fix typo, change config value | 0 | Do it yourself (no spawn) |
-| **A** | Small feature, 1-3 files | Add a helper function, fix a bug | 2-3 | implementer + tester |
-| **B** | Medium feature, 4-15 files | New API endpoint, refactor module | 4-7 | architect + implementer(1-3) + tester + reviewer + documenter |
-| **C** | Large feature/new module, 15+ files | New subsystem, major refactor | 9+ | Full Army (all agents) |
+| **A** | Small feature, 1-3 files | Add a helper function, fix a bug | 2 | implementer + tester |
+| **B** | Medium feature, 4-15 files | New API endpoint, refactor module | 3-5 | architect + implementer(1-3) + tester + documenter |
+| **C** | Large feature/new module, 15+ files | New subsystem, major refactor | 5+ | All agents (architect + implementer(2-5) + tester(1-2) + documenter) |
 
 ### Grading Decision Flow
 
 1. **Count affected files** — Estimate files to create/modify
 2. **Assess design need** — Does it need architectural design? (Yes → B or C)
-3. **Assess security risk** — Does it touch auth, crypto, user data? (Yes → add security-auditor)
-4. **Assess integration complexity** — Multiple agents writing parallel? (Yes → add integrator)
+3. **Assess security risk** — Does it touch auth, crypto, user data? (Yes → ensure tester covers security)
+4. **Assess integration complexity** — Multiple agents writing parallel? (Yes → designate implementer as integrator)
 
 ### Grade-Specific Documentation Strategy
 
@@ -161,9 +156,9 @@ Before marking work complete:
 | **S** | No separate doc agent — include changes in commit message |
 | **A** | No separate doc agent — implementer updates docs inline |
 | **B** | Single `documenter` handles ALL doc work (writing + reports + filing) |
-| **C** | Full doc team: `documenter` + `reporter` + `doc-manager` |
+| **C** | Single `documenter` handles ALL doc work (writing + reports + filing) |
 
-**IMPORTANT**: Only spawn `reporter` and `doc-manager` as separate agents for C-grade tasks. For B-grade and below, the `documenter` agent handles report generation and filing as part of its documentation duties.
+**NOTE**: The `documenter` agent always handles all documentation needs — writing, report generation, and filing. No separate reporter or doc-manager agents.
 
 ## Failure Recovery Protocol
 
@@ -221,15 +216,10 @@ In Agent Teams mode, agents can communicate directly via `SendMessage`. Define w
 
 | From | To | When | Purpose |
 |------|----|------|---------|
-| reviewer | implementer | Review findings need clarification | Ask about intent behind specific code |
-| reviewer | security-auditor | Quality issue may have security implications | Cross-verify if issue is security-relevant |
-| reviewer | tester | Suspicious code needs test coverage | Request specific test scenarios |
-| security-auditor | reviewer | Security finding overlaps quality concern | Cross-verify severity classification |
-| security-auditor | implementer | Critical vulnerability found | Urgent fix notification |
-| security-auditor | architect | Auth/security design concern | Validate threat model coverage |
-| security-auditor | tester | Security-specific test gap | Request security test scenarios |
-| tester | implementer | Test failure needs code context | Ask about expected behavior |
-| integrator | implementer | Merge conflict needs resolution | Coordinate file-level changes |
+| tester | implementer | Review/security findings need clarification | Ask about intent behind specific code |
+| tester | architect | Auth/security design concern | Validate threat model coverage |
+| implementer | implementer | Merge conflict between parallel workers | Coordinate file-level changes |
+| documenter | implementer | Code questions during documentation | Ask about implementation details |
 
 ### Setting Up Direct Communication
 
@@ -241,11 +231,11 @@ When spawning agents in Agent Teams mode, instruct them:
 
 ## Sub-Coordinator Pattern (C-Grade Tasks Only)
 
-For C-grade tasks with 7+ agents, delegate execution-layer coordination to the `integrator` agent as a **sub-coordinator** to prevent tech-lead context window overflow.
+For C-grade tasks with 5+ agents, delegate execution-layer coordination to a designated `implementer` agent as a **sub-coordinator** to prevent tech-lead context window overflow.
 
 ### When to Activate
 
-- Task grade is C (15+ files, 7+ agents)
+- Task grade is C (15+ files, 5+ agents)
 - More than 3 implementers running in parallel
 - You notice your context is getting large (many agent outputs to review)
 
@@ -258,19 +248,19 @@ Tech Lead (Strategic)
 ├── Final quality sign-off
 └── Delegates to ↓
 
-Integrator as Sub-Coordinator (Tactical)
-├── Monitor implementer progress
+Implementer as Sub-Coordinator (Tactical)
+├── Monitor other implementer progress
 ├── Resolve file-level conflicts
 ├── Run intermediate test checks
-├── Coordinate reviewer ↔ implementer fix loops
+├── Coordinate tester ↔ implementer fix loops
 └── Report consolidated status to tech-lead
 ```
 
 ### Delegation Instructions
 
-When activating sub-coordinator mode, spawn the integrator with:
+When activating sub-coordinator mode, spawn the designated implementer with:
 - The full task list and dependency graph
-- Authority to coordinate implementers and request re-work
+- Authority to coordinate other implementers and request re-work
 - Instruction to send consolidated status reports (not per-agent details)
 - Clear escalation criteria: escalate to tech-lead for design changes, scope changes, or quality disputes
 

@@ -1,6 +1,6 @@
 # Agent Army 系統設計文件
 
-> **版本**: 1.5.0 | **最後更新**: 2026-03-04
+> **版本**: 2.0.0 | **最後更新**: 2026-03-04
 > **目標**: 讓單人開發者透過 Claude Code CLI 指揮 AI Agent 大軍，實現從規劃到部署的全自動化軟體開發流程
 
 ---
@@ -36,8 +36,8 @@ graph TD
     B --> B2[自動化重複任務]
     B --> B3[Batch 大規模變更]
 
-    C --> C1[Code Review Agent]
-    C --> C2[Security Audit Agent]
+    C --> C1[Code Review — Tester 統包]
+    C --> C2[Security Audit — Tester 統包]
     C --> C3[Test Coverage Gate]
     C --> C4[Clean Architecture 驗證]
 
@@ -55,7 +55,7 @@ graph TD
 
 | 原則 | 說明 | 實現方式 |
 |------|------|----------|
-| **職責分離** | 每個 Agent 只做一件事 | 10 個專責 Agent 定義 |
+| **職責分離** | 每個 Agent 只做一件事 | 5 個專責 Agent 定義 |
 | **並行最大化** | 獨立任務同時執行 | Subagent 背景模式 + Agent Teams |
 | **Context 節約** | 不浪費 Token 在不需要的 context | 按需載入 Skill + 精簡 spawn prompt |
 | **歷史保留** | 所有報告和決策永不刪除 | `docs/reports/` + `docs/archive/` |
@@ -78,7 +78,6 @@ graph TB
         S1["/assemble"]
         S2["/sprint"]
         S3["/quality-gate"]
-        S4["/context-sync"]
         S5t["/tdd"]
         S6f["/fix"]
         S7ts["/timesheet"]
@@ -94,35 +93,28 @@ graph TB
         IM1[Implementer 1]
         IM2[Implementer 2]
         IM3[Implementer N]
+    end
+
+    subgraph "Quality Layer"
         TE[Tester]
-        RV[Reviewer]
-        SA[Security Auditor]
-        IN[Integrator]
+        QG[Quality Gate]
+        HK[Hooks]
+        RT[Retrospective]
     end
 
     subgraph "Documentation Layer"
         DC[Documenter]
-        DM[Doc Manager]
-        RP[Reporter]
-    end
-
-    subgraph "Quality Layer"
-        QG[Quality Gate]
-        HK[Hooks]
-        RT[Retrospective]
     end
 
     subgraph "Persistence Layer"
         CM[CLAUDE.md]
         MEM[Agent Memory]
         RPT[Reports Archive]
-        CTX[Context Files]
     end
 
     U -->|invoke| S1
     U -->|invoke| S2
     U -->|invoke| S3
-    U -->|invoke| S4
     U -->|invoke| S5t
     U -->|invoke| S6f
 
@@ -136,28 +128,17 @@ graph TB
     TL -->|spawn| IM2
     TL -->|spawn| IM3
     TL -->|spawn| TE
-    TL -->|spawn| RV
-    TL -->|spawn| SA
-    TL -->|spawn| IN
     TL -->|coordinate| TS
 
-    IM1 -->|output| RV
-    IM2 -->|output| RV
-    IM3 -->|output| RV
-    RV -->|findings| RP
-    TE -->|results| RP
-    SA -->|findings| RP
-    IN -->|report| RP
+    IM1 -->|output| TE
+    IM2 -->|output| TE
+    IM3 -->|output| TE
+    TE -->|findings| DC
 
-    RP -->|"analyzed by"| RT
-    RP -->|file| DM
-    DC -->|write| DM
-    DM -->|archive| RPT
+    DC -->|archive| RPT
 
     S3 --> QG
-    QG -->|check| RV
     QG -->|check| TE
-    QG -->|check| SA
 
     HK -->|enforce| QG
 
@@ -175,18 +156,13 @@ graph TB
 .claude/
 ├── CLAUDE.md                          # 專案規範（Clean Architecture + 人機協作標準）
 ├── settings.json                      # Agent Teams 啟用 + Hooks + 權限
-├── agents/                            # 10 個專責 Agent 定義
+├── agents/                            # 5 個專責 Agent 定義
 │   ├── tech-lead.md                   # 團隊指揮官
 │   ├── architect.md                   # 系統架構師
-│   ├── implementer.md                 # 程式碼實作者
-│   ├── tester.md                      # 測試專家
-│   ├── reviewer.md                    # 程式碼審查員
-│   ├── documenter.md                  # 文件撰寫者
-│   ├── security-auditor.md            # 安全審計員
-│   ├── integrator.md                  # 整合專家
-│   ├── doc-manager.md                 # 文件生命週期管理員
-│   └── reporter.md                    # 報告產生器
-├── skills/                            # 11 個核心 Skill（不含 setup）
+│   ├── implementer.md                 # 程式碼實作者 + 整合專家
+│   ├── tester.md                      # 測試 + 審查 + 安全審計
+│   └── documenter.md                  # 文件撰寫 + 報告 + 文件管理
+├── skills/                            # 10 個核心 Skill（不含 setup）
 │   ├── assemble/                      # Agent 大軍集結器
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -199,8 +175,6 @@ graph TB
 │   ├── sprint/                        # Sprint 規劃與執行
 │   │   └── SKILL.md
 │   ├── quality-gate/                  # 品質閘門
-│   │   └── SKILL.md
-│   ├── context-sync/                  # Context 同步管理
 │   │   └── SKILL.md
 │   ├── integration-test/              # 整合測試編排
 │   │   └── SKILL.md
@@ -251,7 +225,7 @@ docs/                                  # 文件與報告（歷史保留）
 | 品質保證 | Hooks + Quality Gate Skill | 事件驅動、自動觸發 |
 | 報告儲存 | Git-tracked `docs/reports/` | 版本控制、歷史保留 |
 
-### 2.4 任務複雜度分級 — 強制分級門檻（v1.3 新增，v1.4 強化）
+### 2.4 任務複雜度分級 — 強制分級門檻
 
 在啟動 Agent 前，**強制**執行三步驟範圍分析（Impact Analysis → Complexity Scoring → Grade Assignment），輸出 Grading Card 後才允許進入下一階段。這不是建議性的 checklist，而是必須通過的 **GATE**。
 
@@ -267,8 +241,8 @@ graph TD
     CARD --> Q{分數?}
     Q -->|0| S["S 級 — STOP<br/>不 spawn agent，直接做"]
     Q -->|1-3| A["A 級 — MAX 3 agents"]
-    Q -->|4-6| B["B 級 — MAX 7 agents"]
-    Q -->|7-10| C["C 級 — 無上限<br/>但每個 agent 必須 justify"]
+    Q -->|4-6| B["B 級 — MAX 4 agents"]
+    Q -->|7-10| C["C 級 — MAX 5 agents<br/>每個 agent 必須 justify"]
 
     style START fill:#e74,stroke:#c52,color:#fff
     style CARD fill:#a49,stroke:#d27,color:#fff
@@ -294,17 +268,17 @@ graph TD
 |------|------|-----------|---------|-----------|
 | **0** | **S — Trivial** | 0（直接做） | 無需 | ~5K |
 | **1-3** | **A — Small** | MAX 3 | implementer 順手更新 | ~50-100K |
-| **4-6** | **B — Medium** | MAX 7 | 單一 documenter 統包 | ~200-400K |
-| **7-10** | **C — Large** | 無上限（需 justify） | documenter + reporter + doc-manager | ~500K-1M |
+| **4-6** | **B — Medium** | MAX 4 | documenter 統包 | ~200-400K |
+| **7-10** | **C — Large** | MAX 5 | documenter（統包全部文件工作） | ~500K-1M |
 
 **HARD RULES**:
 - Score 0 → STOP，不 spawn 任何 agent
 - Score 1-3 → MAX 3 agents，想超過就重新誠實評分
-- Score 4-6 → MAX 7 agents，不拆分 reporter/doc-manager
-- Score 7-10 → 無上限，但 Grading Card 中必須逐一 justify 每個 agent
+- Score 4-6 → MAX 4 agents
+- Score 7-10 → MAX 5 agents，Grading Card 中必須逐一 justify 每個 agent
 - 未輸出 Grading Card 就進入 Phase 2 = 違反協議
 
-**成本最佳化規則**: 絕不使用 C 級團隊執行 B 級任務。額外 agent 的協調稅會抵消並行收益。
+**成本最佳化規則**: 5 個 Agent 已是上限。精簡團隊降低協調稅，提升並行效率。
 
 ---
 
@@ -320,48 +294,27 @@ graph LR
     end
 
     subgraph "Execution"
-        IM[Implementer<br/>實作 x N]
+        IM[Implementer<br/>實作 + 整合 x N]
     end
 
-    subgraph "Verification"
-        TE[Tester<br/>測試]
-        RV[Reviewer<br/>審查]
-        SA[Security<br/>安全]
+    subgraph "Quality"
+        TE[Tester<br/>測試 + 審查 + 安全]
     end
 
     subgraph "Documentation"
-        DC[Documenter<br/>撰寫]
-        DM[Doc Manager<br/>管理]
-        RP[Reporter<br/>報告]
-    end
-
-    subgraph "Integration"
-        IN[Integrator<br/>整合]
+        DC[Documenter<br/>撰寫 + 報告 + 管理]
     end
 
     TL --> AR
     AR --> IM
     IM --> TE
-    IM --> RV
-    IM --> SA
-    TE --> IN
-    RV --> IN
-    SA --> IN
-    IN --> DC
-    IN --> RP
-    RP --> DM
-    DC --> DM
+    TE --> DC
 
     style TL fill:#e74,stroke:#c52,color:#fff
     style AR fill:#e96,stroke:#c74,color:#fff
     style IM fill:#4a9,stroke:#2d7,color:#fff
     style TE fill:#49a,stroke:#27d,color:#fff
-    style RV fill:#49a,stroke:#27d,color:#fff
-    style SA fill:#a49,stroke:#d27,color:#fff
     style DC fill:#9a4,stroke:#7d2,color:#fff
-    style DM fill:#9a4,stroke:#7d2,color:#fff
-    style RP fill:#9a4,stroke:#7d2,color:#fff
-    style IN fill:#4aa,stroke:#2dd,color:#fff
 ```
 
 ### 3.2 角色詳細對照
@@ -370,26 +323,20 @@ graph LR
 |------|------------------|----------|-------|--------|--------|
 | Tech Lead | 技術經理 | 任務分解、協調、委派（不寫碼） | inherit | 單例 | project |
 | Architect | 架構師 | 系統設計、介面定義（plan mode） | inherit | 單例 | project |
-| Implementer | 工程師 | 寫程式碼 | inherit | x1-5 | project |
-| Tester | QA 工程師 | 寫測試、跑測試 | inherit | x1-2 | project |
-| Reviewer | Senior Engineer | Code Review + 對抗式審查 | inherit | x1-3 | project |
-| Security Auditor | 安全工程師 | 安全掃描 + 對抗式審查 | inherit | 單例 | project |
-| Integrator | DevOps | 合併、驗證 | inherit | 單例 | project |
-| Documenter | Technical Writer | 寫文件 | sonnet | 單例 | project |
-| Doc Manager | Librarian | 歸檔、索引 | sonnet | 單例 | project |
-| Reporter | Analyst | 產生報告 | sonnet | 單例 | project |
+| Implementer | 工程師 + DevOps | 寫程式碼、合併整合、解決衝突 | inherit | x1-5 | project |
+| Tester | QA + Senior Engineer + 安全工程師 | 寫測試、跑測試、Code Review、安全掃描 | inherit | x1-2 | project |
+| Documenter | Technical Writer + Analyst + Librarian | 寫文件、產生報告、歸檔索引 | sonnet | 單例 | project |
 
-> **v1.3 變更**: B 級任務中，Documenter 同時承擔 Reporter 和 Doc Manager 的職責（撰寫文件 + 產生報告 + 歸檔索引），僅在 C 級任務才分別生成三個獨立的文件 Agent。
+> **v2.0 變更**: 從 10 個 Agent 精簡為 5 個。Implementer 吸收原 Integrator 職責；Tester 吸收原 Reviewer 和 Security Auditor 職責；Documenter 吸收原 Reporter 和 Doc Manager 職責。減少協調稅，提升整體效率。
 
 ### 3.3 Clean Architecture 在 Agent 中的體現
 
 每個 Agent 都預載 `dev-standards` skill，確保：
 
 1. **Architect** 設計時遵循分層架構
-2. **Implementer** 寫程式碼時遵循依賴規則
-3. **Reviewer** 審查時檢驗 Clean Architecture 合規性
-4. **Tester** 按層測試（Unit → Integration → E2E）
-5. **Quality Gate** 執行自動化 Clean Architecture 審計
+2. **Implementer** 寫程式碼時遵循依賴規則，整合時驗證跨模組一致性
+3. **Tester** 審查時檢驗 Clean Architecture 合規性，按層測試（Unit → Integration → E2E），執行安全掃描
+4. **Quality Gate** 執行自動化 Clean Architecture 審計
 
 ---
 
@@ -423,7 +370,6 @@ sequenceDiagram
 | `/assemble` | 手動 (`/assemble [feature]`) | Main context | 集結 Agent 大軍 |
 | `/sprint` | 手動 (`/sprint [feature]`) | Main context | Sprint 規劃 |
 | `/quality-gate` | 手動 (`/quality-gate [scope]`) | Main context | 品質檢查 |
-| `/context-sync` | 手動 (`/context-sync [action]`) | Main context | Context 管理 |
 | `/integration-test` | 手動 (`/integration-test [scope]`) | Main context | 整合測試編排 |
 | `/code-review` | 手動 (`/code-review [scope]`) | Main context | 程式碼審查編排 |
 | `/retrospective` | 手動 (`/retrospective`) | Main context | Mission 回顧學習 |
@@ -440,7 +386,6 @@ graph TD
         S1[assemble]
         S2[sprint]
         S3[quality-gate]
-        S4[context-sync]
         S5[dev-standards]
         S6[integration-test]
         S7[code-review]
@@ -455,43 +400,29 @@ graph TD
         A2[architect]
         A3[implementer]
         A4[tester]
-        A5[reviewer]
-        A6[documenter]
-        A7[security-auditor]
-        A8[integrator]
-        A9[doc-manager]
-        A10[reporter]
+        A5[documenter]
     end
 
     S1 -->|orchestrates| A1
     S2 -->|plans for| A1
-    S3 -->|validates via| A5
     S3 -->|validates via| A4
-    S3 -->|validates via| A7
     S6 -->|preloaded in| A4
-    S7 -->|preloaded in| A5
+    S7 -->|preloaded in| A4
     S9 -->|preloaded in| A4
     S10 -->|"triages via"| A1
 
-    S8 -->|"analyzes output of"| A10
+    S8 -->|"analyzes output of"| A5
     S8 -->|"updates memory of"| A1
 
     S5 -->|preloaded in| A2
     S5 -->|preloaded in| A3
     S5 -->|preloaded in| A4
     S5 -->|preloaded in| A5
-    S5 -->|preloaded in| A6
-    S5 -->|preloaded in| A8
 
     A1 -->|spawns| A2
     A1 -->|spawns| A3
     A1 -->|spawns| A4
     A1 -->|spawns| A5
-    A1 -->|spawns| A7
-    A1 -->|spawns| A8
-    A1 -->|spawns| A6
-    A1 -->|spawns| A9
-    A1 -->|spawns| A10
 
     S11 -.->|"standalone (no agent)"| S11
 
@@ -506,8 +437,6 @@ graph TD
 
 ### 5.1 標準開發流程
 
-> **注意**: 以下流程圖為 C 級完整流程。B 級任務中，Phase 5 的 Doc/DM/Reporter 三個角色由單一 Documenter 統包。A 級任務不需要獨立文件 Agent。
-
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
@@ -515,11 +444,7 @@ sequenceDiagram
     participant Arch as Architect
     participant Impl as Implementers
     participant Test as Tester
-    participant Rev as Reviewer
-    participant Sec as Security
-    participant Int as Integrator
     participant Doc as Documenter
-    participant DM as Doc Manager
 
     Dev->>Lead: /assemble implement feature X
 
@@ -536,30 +461,24 @@ sequenceDiagram
     end
 
     rect rgb(230, 230, 255)
-        Note over Lead,Sec: Phase 3: Verification (parallel)
-        Lead->>Test: Run tests
-        Lead->>Rev: Review code
-        Lead->>Sec: Security audit
-        Test-->>Lead: Test report
-        Rev-->>Lead: Review report
-        Sec-->>Lead: Security report
+        Note over Lead,Test: Phase 3: Verification
+        Lead->>Test: Run tests + review code + security audit
+        Test-->>Lead: Verification report
     end
 
     rect rgb(255, 255, 230)
-        Note over Lead,Int: Phase 4: Fix Loop
+        Note over Lead,Impl: Phase 4: Fix Loop
         Lead->>Impl: Fix issues (if any)
-        Impl-->>Rev: Re-review
-        Rev-->>Lead: Approved
+        Impl-->>Test: Re-verify
+        Test-->>Lead: Approved
     end
 
     rect rgb(245, 230, 255)
-        Note over Lead,DM: Phase 5: Documentation
-        Lead->>Int: Integrate & verify
-        Lead->>Doc: Write documentation
-        Lead->>DM: File all reports
-        Int-->>Lead: Integration report
-        Doc-->>Lead: Docs updated
-        DM-->>Lead: Reports filed
+        Note over Lead,Doc: Phase 5: Integration & Documentation
+        Lead->>Impl: Integrate & verify
+        Lead->>Doc: Write documentation + file reports
+        Impl-->>Lead: Integration complete
+        Doc-->>Lead: Docs & reports filed
     end
 
     Lead-->>Dev: Mission complete + summary
@@ -602,7 +521,7 @@ graph TD
 | **Agent Teams** | 需協作的任務 | 無硬限制 | 直接訊息/共享任務 | 獨立 context | 高 |
 | **`/batch`** | 大規模相同變更 | 5-30 | 無（各自獨立） | Git worktree 隔離 | 中-高 |
 
-### 5.4 失敗恢復協議（v1.3 新增）
+### 5.4 失敗恢復協議
 
 當 Agent 失敗時的處理流程：
 
@@ -635,7 +554,7 @@ graph TD
 - 2 次重試 → 重新思考任務分解方式
 - 3+ 次重試 → 停止，請求開發者指導
 
-### 5.5 Agent 直接通訊（v1.3 新增）
+### 5.5 Agent 直接通訊
 
 在 Agent Teams 模式下，定義哪些溝通應路由回 Tech Lead，哪些允許直接通訊。
 
@@ -649,11 +568,9 @@ graph TD
     end
 
     subgraph "允許直接通訊"
-        DC1["reviewer → implementer<br/>程式碼意圖釐清"]
-        DC2["security-auditor → reviewer<br/>嚴重性交叉驗證"]
-        DC3["security-auditor → implementer<br/>CRITICAL 漏洞緊急通知"]
-        DC4["tester → implementer<br/>預期行為確認"]
-        DC5["integrator → implementer<br/>合併衝突解決"]
+        DC1["tester → implementer<br/>預期行為確認 / 程式碼意圖釐清"]
+        DC2["tester → implementer<br/>CRITICAL 漏洞緊急通知"]
+        DC3["documenter → implementer<br/>實作細節確認"]
     end
 
     style TL1 fill:#e74,stroke:#c52,color:#fff
@@ -661,17 +578,15 @@ graph TD
     style TL3 fill:#e74,stroke:#c52,color:#fff
     style TL4 fill:#e74,stroke:#c52,color:#fff
     style DC1 fill:#4a9,stroke:#2d7,color:#fff
-    style DC2 fill:#4a9,stroke:#2d7,color:#fff
-    style DC3 fill:#a49,stroke:#d27,color:#fff
-    style DC4 fill:#4a9,stroke:#2d7,color:#fff
-    style DC5 fill:#4a9,stroke:#2d7,color:#fff
+    style DC2 fill:#a49,stroke:#d27,color:#fff
+    style DC3 fill:#4a9,stroke:#2d7,color:#fff
 ```
 
 **規則**: 直接通訊僅限於釐清和緊急通知。任務分配、範圍變更、設計決策必須透過 Tech Lead。
 
-### 5.6 子協調者模式（v1.3 新增）
+### 5.6 子協調者模式
 
-C 級任務（15+ 檔案、7+ agents）時，將 Integrator 提升為子協調者，避免 Tech Lead context window 溢出。
+C 級任務（15+ 檔案、3+ implementers）時，將 Implementer 提升為子協調者，避免 Tech Lead context window 溢出。
 
 ```mermaid
 graph TB
@@ -681,11 +596,11 @@ graph TB
         S3[最終品質簽核]
     end
 
-    subgraph "戰術層 — Integrator 子協調者"
-        T1[監控 implementer 進度]
+    subgraph "戰術層 — Implementer 子協調者"
+        T1[監控其他 implementer 進度]
         T2[解決檔案層級衝突]
         T3[執行中間測試檢查]
-        T4["協調 reviewer ↔ implementer 修復循環"]
+        T4["協調 tester ↔ implementer 修復循環"]
         T5[向 Tech Lead 回報匯總狀態]
     end
 
@@ -725,7 +640,6 @@ graph TB
     subgraph "Layer 3: On-Demand"
         SK[Skills<br/>Description always in context<br/>Content loaded when invoked]
         RF[Reference Files<br/>Loaded when agent needs them]
-        CF[Context Files<br/>.claude/context/*.md]
     end
 
     CM --> MM
@@ -737,7 +651,6 @@ graph TB
     style AM fill:#e96,stroke:#c74,color:#fff
     style SK fill:#4a9,stroke:#2d7,color:#fff
     style RF fill:#4a9,stroke:#2d7,color:#fff
-    style CF fill:#4a9,stroke:#2d7,color:#fff
 ```
 
 ### 6.2 Context Budget 分配
@@ -774,10 +687,10 @@ graph TB
 ```mermaid
 stateDiagram-v2
     [*] --> Created: Agent generates report
-    Created --> Active: Filed by doc-manager
+    Created --> Active: Filed by documenter
     Active --> Active: Updated
     Active --> Stale: Code changed significantly
-    Stale --> Updated: doc-manager refreshes
+    Stale --> Updated: documenter refreshes
     Stale --> Archived: Superseded by new doc
     Updated --> Active
     Archived --> [*]: Preserved forever
@@ -798,11 +711,11 @@ stateDiagram-v2
 
 | 報告類型 | 產生者 | 觸發時機 | 儲存位置 |
 |----------|--------|----------|----------|
-| Code Review | reviewer → reporter | 每次 Review 後 | `docs/reports/code-review/` |
-| Test Report | tester → reporter | 每次測試後 | `docs/reports/test/` |
-| Security Audit | security-auditor → reporter | 每次審計後 | `docs/reports/security/` |
-| Fix Report | implementer → reporter | 修復 bug 後 | `docs/reports/fix/` |
-| Integration Report | integrator → reporter | 整合完成後 | `docs/reports/integration/` |
+| Code Review | tester | 每次 Review 後 | `docs/reports/code-review/` |
+| Test Report | tester | 每次測試後 | `docs/reports/test/` |
+| Security Audit | tester | 每次審計後 | `docs/reports/security/` |
+| Fix Report | implementer | 修復 bug 後 | `docs/reports/fix/` |
+| Integration Report | implementer | 整合完成後 | `docs/reports/integration/` |
 | Quality Gate | quality-gate skill | 手動觸發 | `docs/reports/quality-gate/` |
 
 ### 7.3 命名規範
@@ -888,14 +801,11 @@ graph TD
         O1[Tech Lead]
         O2[Architect]
         O3[Implementer]
-        O4[Reviewer]
-        O5[Security Auditor]
+        O4[Tester]
     end
 
     subgraph "Sonnet (Cost Optimized)"
         S1[Documenter]
-        S2[Doc Manager]
-        S3[Reporter]
     end
 
     subgraph "Haiku (Fast & Cheap)"
@@ -907,10 +817,7 @@ graph TD
     style O2 fill:#e74,stroke:#c52,color:#fff
     style O3 fill:#e74,stroke:#c52,color:#fff
     style O4 fill:#e74,stroke:#c52,color:#fff
-    style O5 fill:#e74,stroke:#c52,color:#fff
     style S1 fill:#49a,stroke:#27d,color:#fff
-    style S2 fill:#49a,stroke:#27d,color:#fff
-    style S3 fill:#49a,stroke:#27d,color:#fff
     style H1 fill:#4a9,stroke:#2d7,color:#fff
     style H2 fill:#4a9,stroke:#2d7,color:#fff
 ```
@@ -919,15 +826,15 @@ graph TD
 
 | 工作規模 | Agent 數 | 預估 Token | 成本估算 (Opus) |
 |----------|---------|-----------|----------------|
-| 小功能 (3 agents) | 3 | ~100K | ~$1-3 |
-| 中功能 (5-7 agents) | 7 | ~300K | ~$5-10 |
-| 大功能 (9+ agents) | 9+ | ~500K-1M | ~$15-30 |
+| 小功能 (2-3 agents) | 2-3 | ~100K | ~$1-3 |
+| 中功能 (3-4 agents) | 3-4 | ~300K | ~$5-10 |
+| 大功能 (5 agents) | 5 | ~500K-1M | ~$15-30 |
 | Batch 遷移 (20 workers) | 20 | ~1-2M | ~$30-60 |
 
 ### 9.3 優化技巧
 
 1. **不需要的 Agent 不要 spawn** — 小改動不需要 architect
-2. **用 Sonnet 做文件工作** — documenter, doc-manager, reporter 用 sonnet
+2. **用 Sonnet 做文件工作** — documenter 用 sonnet
 3. **用 Haiku 做搜尋** — Explore agent 自動用 haiku
 4. **控制 spawn prompt 大小** — ≤ 2000 tokens
 5. **善用 Agent Memory** — 跨 session 不重複學習
@@ -946,8 +853,8 @@ graph TB
         MK[".claude-plugin/marketplace.json"]
         subgraph "plugins/agent-army/"
             PJ[".claude-plugin/plugin.json"]
-            AG["agents/ (10 agents)"]
-            SK["skills/ (12 skills)"]
+            AG["agents/ (5 agents)"]
+            SK["skills/ (11 skills)"]
             HK["hooks/hooks.json"]
             ST["settings.json"]
         end
@@ -974,26 +881,19 @@ graph TB
 plugins/agent-army/                    # Plugin Root
 ├── .claude-plugin/
 │   └── plugin.json                    # Plugin manifest
-├── agents/                            # 10 Agent definitions
+├── agents/                            # 5 Agent definitions
 │   ├── tech-lead.md
 │   ├── architect.md
 │   ├── implementer.md
 │   ├── tester.md
-│   ├── reviewer.md
-│   ├── documenter.md
-│   ├── security-auditor.md
-│   ├── integrator.md
-│   ├── doc-manager.md
-│   └── reporter.md
-├── skills/                            # 12 Skills
+│   └── documenter.md
+├── skills/                            # 11 Skills
 │   ├── assemble/                      # Agent army orchestrator
 │   │   ├── SKILL.md
 │   │   └── references/
 │   ├── sprint/                        # Sprint planning
 │   │   └── SKILL.md
 │   ├── quality-gate/                  # Quality checkpoints
-│   │   └── SKILL.md
-│   ├── context-sync/                  # Context management
 │   │   └── SKILL.md
 │   ├── integration-test/             # Integration test orchestrator
 │   │   └── SKILL.md
@@ -1078,7 +978,6 @@ claude --plugin-dir ./symbiotic-engineering/plugins/agent-army
 | CLAUDE.md | `.claude/CLAUDE.md` | 需初始化 | `/agent-army:setup` 產生 |
 | Settings | `.claude/settings.json` | 需初始化 | `/agent-army:setup` 配置 |
 | docs/ 結構 | `docs/reports/` | 需初始化 | `/agent-army:setup` 建立 |
-| Context | `.claude/context/` | 專案特定 | `/agent-army:context-sync init` |
 
 ### 10.6 團隊分享與自動安裝
 
@@ -1096,7 +995,7 @@ sequenceDiagram
     Dev-->>Dev: Claude Code 自動提示<br/>"Install agent-army plugin?"
     Dev->>Dev: 確認安裝
     Dev->>Dev: /agent-army:setup my-project
-    Dev->>Dev: Agent Army Ready ✅
+    Dev->>Dev: Agent Army Ready
 ```
 
 ---
@@ -1116,4 +1015,4 @@ sequenceDiagram
 
 ---
 
-*Agent Army System v1.5.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army System v2.0.0 | Symbiotic Engineering | 2026-03-04*

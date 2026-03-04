@@ -56,7 +56,7 @@ Output of Phase 1:
 
 ## Phase 2: Multi-Dimensional Review
 
-Review changes across five dimensions. Spawn `reviewer` agent or execute directly.
+Review changes across five dimensions. Spawn `tester` agent or execute directly.
 
 ### Dimension 1: Clean Architecture Compliance
 
@@ -130,7 +130,7 @@ Generate a severity-classified review report.
 
 **Date**: YYYY-MM-DD HH:MM
 **Scope**: [what was reviewed]
-**Reviewer**: reviewer agent
+**Reviewer**: tester agent
 **Overall**: APPROVE / REQUEST_CHANGES / NEEDS_DISCUSSION
 
 ## Diff Summary
@@ -174,11 +174,11 @@ Generate a severity-classified review report.
 File the report for historical preservation.
 
 1. Generate the report using the template above
-2. File via `doc-manager` or directly at:
+2. File via `documenter` or directly at:
    ```
    docs/reports/code-review/YYYY-MM-DD-[scope]-review-report.md
    ```
-3. Update `docs/INDEX.md` if doc-manager is available
+3. Update `docs/INDEX.md` if documenter is available
 
 ## Quick Reference
 

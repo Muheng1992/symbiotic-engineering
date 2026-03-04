@@ -1,7 +1,7 @@
 # Agent Army — Claude Code Plugin
 
 > AI-powered software development team for Claude Code CLI.
-> 10 specialized agents + 12 skills covering the full SDLC with Clean Architecture enforcement.
+> 5 specialized agents + 11 skills covering the full SDLC with Clean Architecture enforcement.
 
 ## Quick Install
 
@@ -50,29 +50,23 @@ Add to your project's `.claude/settings.json`:
 
 ## What's Included
 
-### 10 Specialized Agents
+### 5 Specialized Agents
 
 | Agent | Role | Model |
 |-------|------|-------|
 | `tech-lead` | Orchestration & delegation (no Write/Edit) | opus |
 | `architect` | System design & API design (plan mode) | opus |
-| `implementer` | Code implementation | opus |
-| `tester` | Unit + integration testing | opus |
-| `reviewer` | Code review (read-only) | opus |
-| `documenter` | Documentation | sonnet |
-| `security-auditor` | Security scanning (read-only) | opus |
-| `integrator` | Merge & E2E verification | opus |
-| `doc-manager` | Document lifecycle management | sonnet |
-| `reporter` | Structured report generation | sonnet |
+| `implementer` | Code implementation + integration | opus |
+| `tester` | Testing + code review + security audit | opus |
+| `documenter` | Documentation + reports + filing | sonnet |
 
-### 12 Skills (Slash Commands)
+### 11 Skills (Slash Commands)
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
-| **Assemble** | `/agent-army:assemble [feature]` | Launch full agent army for a feature |
+| **Assemble** | `/agent-army:assemble [feature]` | Launch agent army for a feature |
 | **Sprint** | `/agent-army:sprint [feature]` | Sprint planning & task decomposition |
 | **Quality Gate** | `/agent-army:quality-gate [scope]` | Quality checkpoint (6 gates) |
-| **Context Sync** | `/agent-army:context-sync [action]` | Context management across agents |
 | **Integration Test** | `/agent-army:integration-test [scope]` | Integration test orchestration (5-stage) |
 | **Code Review** | `/agent-army:code-review [scope]` | Code review orchestration (4-stage) |
 | **Setup** | `/agent-army:setup [project-name]` | Initialize project for Agent Army |
@@ -93,32 +87,27 @@ Add to your project's `.claude/settings.json`:
 
 ```mermaid
 graph LR
-    A["/agent-army:setup"] --> B["/agent-army:context-sync init"]
-    B --> C["/agent-army:sprint"]
-    C --> D["/agent-army:assemble"]
-    D --> E["/agent-army:quality-gate"]
+    A["/agent-army:setup"] --> B["/agent-army:sprint"]
+    B --> C["/agent-army:assemble"]
+    C --> D["/agent-army:quality-gate"]
 
     style A fill:#a49,stroke:#d27,color:#fff
-    style B fill:#49a,stroke:#27d,color:#fff
-    style C fill:#e96,stroke:#c74,color:#fff
-    style D fill:#e74,stroke:#c52,color:#fff
-    style E fill:#4a9,stroke:#2d7,color:#fff
+    style B fill:#e96,stroke:#c74,color:#fff
+    style C fill:#e74,stroke:#c52,color:#fff
+    style D fill:#4a9,stroke:#2d7,color:#fff
 ```
 
 ```
 # 1. Setup (first time only)
 /agent-army:setup my-app
 
-# 2. Initialize context
-/agent-army:context-sync init
-
-# 3. Plan a sprint
+# 2. Plan a sprint
 /agent-army:sprint "Add user authentication with JWT"
 
-# 4. Deploy the agent army
+# 3. Deploy the agent army
 /agent-army:assemble "Add user authentication with JWT"
 
-# 5. Quality check before merge
+# 4. Quality check before merge
 /agent-army:quality-gate all
 ```
 
@@ -126,12 +115,11 @@ graph LR
 
 ```
 Agent Army Plugin
-├── agents/           10 specialized agent definitions
-├── skills/           12 skills (slash commands)
+├── agents/           5 specialized agent definitions
+├── skills/           11 skills (slash commands)
 │   ├── assemble/     Full army orchestrator
 │   ├── sprint/       Sprint planning
 │   ├── quality-gate/ Quality checkpoints
-│   ├── context-sync/ Context management
 │   ├── integration-test/ Integration test orchestration
 │   ├── code-review/  Code review orchestration
 │   ├── tdd/          TDD enforcement
@@ -150,12 +138,11 @@ Agent Army Plugin
 
 ## Key Features
 
+- **Streamlined Team**: 5 agents based on industry best practices (3-5 recommended by Anthropic)
 - **Parallel Agent Execution**: Multiple agents work simultaneously on independent tasks
 - **Clean Architecture Enforcement**: Hooks + standards ensure dependency rules
 - **Full Report Lifecycle**: All reviews, tests, audits filed and historically preserved
-- **Plan Traceability**: Every plan tracked with approval/rejection/execution status
-- **Cost Optimization**: Documentation agents use Sonnet; reasoning agents use Opus
-- **Context Management**: Agents receive only the context they need
+- **Cost Optimization**: Documentation agent uses Sonnet; reasoning agents use Opus
 - **TDD Enforcement**: Red-Green-Refactor cycle as a blocking gate
 - **Smart Fix**: Automatic diagnosis and dynamic agent selection for bug fixes
 - **Role Isolation**: Tech Lead coordinates only; Architect designs only (plan mode)

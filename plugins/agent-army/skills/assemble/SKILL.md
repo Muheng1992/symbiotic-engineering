@@ -71,9 +71,9 @@ Map score to grade:
 | Score | Grade | Team Strategy |
 |-------|-------|---------------|
 | **0** | **S — Trivial** | No agents — do it directly |
-| **1-3** | **A — Small** | Minimal Team (2-3 agents) |
-| **4-6** | **B — Medium** | Standard Team (4-7 agents) |
-| **7-10** | **C — Large** | Full Army (9+ agents) |
+| **1-3** | **A — Small** | Minimal Team (2 agents) |
+| **4-6** | **B — Medium** | Standard Team (4-5 agents) |
+| **7-10** | **C — Large** | Full Army (5+ agents) |
 
 ### REQUIRED OUTPUT: Grading Card
 
@@ -99,8 +99,8 @@ Map score to grade:
 
 **HARD RULES:**
 - **Score 0 → STOP.** Do not spawn any agents. Implement directly and return.
-- **Score 1-3 → MAX 3 agents.** If you find yourself wanting more, re-score honestly.
-- **Score 4-6 → MAX 7 agents.** No reporter or doc-manager as separate agents.
+- **Score 1-3 → MAX 2 agents.** If you find yourself wanting more, re-score honestly.
+- **Score 4-6 → MAX 5 agents.** No separate reviewer, security-auditor, or doc-manager.
 - **Score 7-10 → No cap**, but justify each agent in the Grading Card.
 - **If you skip this phase or don't output the Grading Card, you are violating protocol.**
 
@@ -140,34 +140,27 @@ Based on the Grading Card, create a structured plan:
 
 Spawn the appropriate agents based on **task grade**:
 
-### Grade A — Minimal Team (2-3 agents)
+### Grade A — Minimal Team (2 agents)
 1. `implementer` — Write the code
-2. `tester` — Write and run tests
-3. `reviewer` — Review the changes (optional for trivial fixes)
+2. `tester` — Review, test, and security check
 
 **Documentation**: Implementer updates docs inline. No separate doc agent.
 
-### Grade B — Standard Team (4-7 agents)
+### Grade B — Standard Team (4-5 agents)
 1. `architect` — Design the solution (if design needed)
-2. `implementer` (x1-3) — Implement components in parallel
-3. `tester` — Write comprehensive tests
-4. `reviewer` — Code review
-5. `documenter` — Handles ALL documentation: writing, report generation, AND filing
+2. `implementer` (x1-3) — Implement and integrate components in parallel
+3. `tester` — Code review, security audit, and comprehensive tests
+4. `documenter` — ALL documentation: writing, reports, filing, indexing
 
-**Documentation**: Single `documenter` agent handles everything — writing docs, generating reports (using reporter templates), and filing/indexing (using doc-manager conventions). This eliminates 2 agent spawns and their coordination overhead.
+**Documentation**: Single `documenter` agent handles everything — writing docs, generating reports (using reporter templates), and filing/indexing (using doc-manager conventions). No separate reviewer or security-auditor.
 
-### Grade C — Full Army (9+ agents)
+### Grade C — Full Army (5+ agents)
 1. `architect` — System design
-2. `implementer` (x2-5) — Parallel implementation
-3. `tester` (x1-2) — Unit + integration tests
-4. `reviewer` — Code review
-5. `security-auditor` — Security review
-6. `integrator` — Merge, verify, AND sub-coordinate execution layer
-7. `documenter` — Documentation writing
-8. `reporter` — Report generation (separate for volume)
-9. `doc-manager` — Report filing & doc maintenance (separate for volume)
+2. `implementer` (x2-5) — Parallel implementation and integration
+3. `tester` (x1-2) — Code review, security audit, unit + integration tests
+4. `documenter` — Documentation writing, report generation, filing
 
-**Documentation**: Full doc team justified by the volume of reports and documentation.
+**Documentation**: Single `documenter` handles all documentation needs. No separate reviewer, security-auditor, integrator, reporter, or doc-manager.
 
 ### Spawning Strategy
 
@@ -183,8 +176,8 @@ Wait for all → Continue
 ```
 Spawn architect → Design
 Then spawn implementers in parallel → Implementation
-Then spawn tester → Testing
-Then spawn reviewer → Review
+Then spawn tester → Testing + Review + Security
+Then spawn documenter → Documentation
 ```
 
 **For large-scale changes**, use `/batch`:
@@ -208,22 +201,18 @@ Then spawn reviewer → Review
   - Project conventions from dev-standards skill
 - Run in background, monitor via TaskList
 
-### Step 3: Testing
+### Step 3: Testing, Review & Security
 - Spawn `tester` agent after implementation completes
+- Tester handles code review, security scanning, and comprehensive tests
 - Input: list of all new/modified files
-- Output: test report
+- Output: test report, review report, security report
 
-### Step 4: Review & Security
-- Spawn `reviewer` and `security-auditor` in parallel
-- Each reviews all changes from their perspective
-- Output: review reports
-
-### Step 5: Fix Loop
+### Step 4: Fix Loop
 - If issues found: spawn `implementer` to fix
 - Re-run review on fixed code
 - Repeat until APPROVED
 
-### Step 6: Documentation
+### Step 5: Documentation
 
 **Grade A tasks**:
 - No separate documenter — documentation included in implementation
@@ -232,12 +221,10 @@ Then spawn reviewer → Review
 - Spawn single `documenter` — handles doc writing, report generation, AND filing
 
 **Grade C tasks**:
-- Spawn `documenter` to update docs
-- Spawn `reporter` to generate all reports
-- Spawn `doc-manager` to file and index reports
+- Spawn single `documenter` — handles doc writing, report generation, AND filing/indexing
 
-### Step 7: Integration
-- Spawn `integrator` for final verification
+### Step 6: Integration
+- Implementer handles integration — no separate integrator agent
 - Run full test suite
 - Verify build succeeds
 
@@ -275,9 +262,9 @@ Generate a final mission report:
 | Grade | Files | Total Agents | Parallel Implementers | Doc Agents | Estimated Tokens |
 |-------|-------|-------------|----------------------|------------|-----------------|
 | **S** | 1     | 0           | 0                    | 0          | ~5K (direct)    |
-| **A** | 1-3   | 2-3         | 1                    | 0          | ~50-100K        |
-| **B** | 4-15  | 4-7         | 1-3                  | 1          | ~200-400K       |
-| **C** | 15+   | 9+          | 2-5                  | 3          | ~500K-1M        |
+| **A** | 1-3   | 2           | 1                    | 0          | ~50-100K        |
+| **B** | 4-15  | 4-5         | 1-3                  | 1          | ~200-400K       |
+| **C** | 15+   | 5+          | 2-5                  | 1          | ~500K-1M        |
 
 **Cost Optimization Rule**: Never use a C-grade team for a B-grade task. The coordination tax of extra agents outweighs any parallelism benefit.
 

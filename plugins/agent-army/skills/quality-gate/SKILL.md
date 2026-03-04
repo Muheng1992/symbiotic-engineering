@@ -4,7 +4,7 @@ description: >
   Quality assurance checkpoint. Use after implementation to run a comprehensive
   quality check covering code review, test verification, security scan, documentation
   check, and Clean Architecture compliance. Blocks merge until all gates pass.
-  Generates a quality report that is filed by the doc-manager.
+  Generates a quality report that is filed by the documenter.
 disable-model-invocation: true
 ---
 
@@ -48,7 +48,7 @@ Minimum requirements:
 
 ## Gate 3: Code Review
 
-Spawn `reviewer` agent (or use subagent) to check:
+Spawn `tester` agent (or use subagent) to check:
 
 1. **Clean Architecture Compliance**
    - Dependencies point inward only
@@ -71,7 +71,7 @@ Report: PASS / NEEDS_ATTENTION with findings
 
 ## Gate 4: Security Scan
 
-Spawn `security-auditor` agent (or use subagent) to check:
+The `tester` agent also checks:
 
 1. No hardcoded secrets
 2. Input validation present
@@ -142,5 +142,5 @@ Run gates in parallel where possible:
 [APPROVE for merge / FIX required issues first]
 ```
 
-After generating, the report should be filed by the `doc-manager` at:
+After generating, the report should be filed by the `documenter` at:
 `docs/reports/quality-gate/YYYY-MM-DD-[scope]-quality-gate.md`

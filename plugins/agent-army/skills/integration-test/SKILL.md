@@ -200,7 +200,7 @@ Generate a comprehensive integration test report and file it.
 
 ### Report Filing
 
-File the report via `doc-manager` or directly at:
+File the report via `documenter` or directly at:
 ```
 docs/reports/test/YYYY-MM-DD-[scope]-integration-test-report.md
 ```

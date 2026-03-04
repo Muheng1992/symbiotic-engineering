@@ -78,14 +78,9 @@ This project includes a multi-agent development system in `.claude/`:
 |-------|------|-------------|
 | `tech-lead` | Orchestration | Coordination & delegation (no direct coding) |
 | `architect` | System Design | Design & planning (plan mode, read-only) |
-| `implementer` | Coding | Writing and modifying code |
-| `tester` | Testing | Writing and running tests |
-| `reviewer` | Code Review | Post-implementation quality review |
-| `documenter` | Documentation | Writing and updating docs |
-| `security-auditor` | Security | Security scanning and audit |
-| `integrator` | Integration | Merging multi-agent work |
-| `doc-manager` | Doc Lifecycle | Filing reports, maintaining doc index |
-| `reporter` | Report Generation | Creating structured reports |
+| `implementer` | Coding + Integration | Writing code, refactoring, integrating multi-agent work |
+| `tester` | Testing + Review + Security | Tests, code review, and OWASP security audit |
+| `documenter` | Docs + Reports + Filing | Documentation, report generation, and archival |
 
 ### Available Skills (`.claude/skills/`)
 | Skill | Purpose | Invocation |
@@ -93,7 +88,6 @@ This project includes a multi-agent development system in `.claude/`:
 | `/assemble` | Launch full agent army | `/assemble [feature description]` |
 | `/sprint` | Sprint planning & execution | `/sprint [feature or issue]` |
 | `/quality-gate` | Quality checkpoint | `/quality-gate [scope]` |
-| `/context-sync` | Context management | `/context-sync [action]` |
 | `/integration-test` | Integration test orchestration | `/integration-test [scope]` |
 | `/code-review` | Code review orchestration | `/code-review [scope]` |
 | `/retrospective` | Mission retrospective | `/retrospective` |

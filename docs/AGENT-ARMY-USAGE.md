@@ -1,6 +1,6 @@
 # Agent Army 使用指南
 
-> **版本**: 1.2.0 | **最後更新**: 2026-03-04
+> **版本**: 2.0.0 | **最後更新**: 2026-03-04
 > 從零開始設定和使用 Agent Army 系統的完整教學
 
 ---
@@ -38,10 +38,7 @@
 # 3. 初始化你的專案
 /agent-army:setup my-project
 
-# 4. 初始化 Context
-/agent-army:context-sync init
-
-# 5. 開始使用！
+# 4. 開始使用！
 /agent-army:assemble implement user authentication with JWT
 ```
 
@@ -58,10 +55,7 @@ mkdir -p /your/project/docs/{reports/{code-review,test,security,fix,integration,
 # 3. 啟動 Claude Code
 cd /your/project && claude
 
-# 4. 初始化 Context
-/context-sync init
-
-# 5. 開始使用！
+# 4. 開始使用！
 /assemble implement user authentication with JWT
 ```
 
@@ -168,12 +162,7 @@ claude agents
 # - agent-army:architect
 # - agent-army:implementer
 # - agent-army:tester
-# - agent-army:reviewer
 # - agent-army:documenter
-# - agent-army:security-auditor
-# - agent-army:integrator
-# - agent-army:doc-manager
-# - agent-army:reporter
 
 # 手動安裝的 agents 沒有前綴：
 # - tech-lead
@@ -200,7 +189,7 @@ claude agents
 
 執行流程：
 1. Claude 分析你的專案結構
-2. 根據任務複雜度決定團隊規模（3-10 agents）
+2. 根據任務複雜度決定團隊規模（3-5 agents）
 3. 自動分解任務、設定依賴
 4. 並行啟動 agents
 5. 監控執行、處理問題
@@ -232,15 +221,6 @@ claude agents
 /quality-gate all                 # 檢查整個專案
 ```
 
-### 4.4 Context 管理
-
-```
-/context-sync init              # 初始化 context 基礎設施
-/context-sync refresh           # 更新 context 檔案
-/context-sync status            # 查看 context 健康狀態
-/context-sync export            # 匯出可攜 context 包
-```
-
 ---
 
 ## 5. 進階使用
@@ -251,7 +231,7 @@ claude agents
 
 ```
 /assemble implement payment gateway. Use architect for design, 3 implementers
-for parallel coding, and security-auditor for payment security review.
+for parallel coding, and tester for payment security review.
 ```
 
 ### 5.2 使用 Agent Teams（實驗性）
@@ -288,8 +268,8 @@ before making any code changes.
 你也可以直接讓 Claude 使用特定 agent：
 
 ```
-Use the reviewer agent to review my recent changes
-Use the security-auditor agent to scan src/auth/
+Use the tester agent to review my recent changes
+Use the tester agent to scan src/auth/ for security issues
 Use the tester agent to write tests for the user module
 ```
 
@@ -340,14 +320,6 @@ Use the tester agent to write tests for the user module
 4. 安全掃描
 5. Clean Architecture 合規
 6. 文件完整性
-
----
-
-### `/context-sync` — Context 同步
-
-**用途**: 管理跨 agent 的共享 context
-
-**語法**: `/context-sync [init | refresh | status | export]`
 
 ---
 
@@ -433,7 +405,15 @@ Use the tester agent to write tests for the user module
 4. **Fix Execution** — 先寫回歸測試，再修復，再全套測試
 5. **Report & Learn** — 產生修復報告，記錄預防措施
 
-**問題分類**: Build Error → `implementer` | Test Failure → `tester` | Security Issue → `security-auditor` → `implementer` | Architecture Violation → `architect` → `implementer`
+**問題分類**: Build Error → `implementer` | Test Failure → `tester` | Security Issue → `tester` → `implementer` | Architecture Violation → `architect` → `implementer`
+
+---
+
+### `/timesheet` — 工時分析
+
+**用途**: 分析多專案工作時間，產出日報
+
+**語法**: `/timesheet [time-range]`
 
 ---
 
@@ -459,38 +439,23 @@ Use the tester agent to write tests for the user module
 ```mermaid
 graph TD
     Q["需要什麼？"] --> A["設計 / 架構"]
-    Q --> B["寫程式碼"]
-    Q --> C["寫 / 跑測試"]
-    Q --> D["審查程式碼"]
-    Q --> E["安全分析"]
-    Q --> F["合併整合"]
-    Q --> G["寫文件"]
-    Q --> H["產生報告"]
-    Q --> I["管理文件"]
-    Q --> J["複雜協調"]
+    Q --> B["寫程式碼 / 合併整合"]
+    Q --> C["測試 / 審查 / 安全分析"]
+    Q --> D["文件 / 報告 / 歸檔"]
+    Q --> E["複雜協調"]
 
     A --> A1[architect]
     B --> B1["implementer（可多個）"]
     C --> C1[tester]
-    D --> D1[reviewer]
-    E --> E1[security-auditor]
-    F --> F1[integrator]
-    G --> G1[documenter]
-    H --> H1[reporter]
-    I --> I1[doc-manager]
-    J --> J1[tech-lead]
+    D --> D1[documenter]
+    E --> E1[tech-lead]
 
     style Q fill:#e74,stroke:#c52,color:#fff
     style A1 fill:#e96,stroke:#c74,color:#fff
     style B1 fill:#4a9,stroke:#2d7,color:#fff
     style C1 fill:#49a,stroke:#27d,color:#fff
-    style D1 fill:#49a,stroke:#27d,color:#fff
-    style E1 fill:#a49,stroke:#d27,color:#fff
-    style F1 fill:#4aa,stroke:#2dd,color:#fff
-    style G1 fill:#9a4,stroke:#7d2,color:#fff
-    style H1 fill:#9a4,stroke:#7d2,color:#fff
-    style I1 fill:#9a4,stroke:#7d2,color:#fff
-    style J1 fill:#e74,stroke:#c52,color:#fff
+    style D1 fill:#9a4,stroke:#7d2,color:#fff
+    style E1 fill:#e74,stroke:#c52,color:#fff
 ```
 
 ### 角色快速參考
@@ -499,14 +464,9 @@ graph TD
 |------|---------|------|
 | **tech-lead** | 複雜任務需要多 agent 協調（不直接寫碼） | 任務分解 + 委派協調 |
 | **architect** | 新功能、重構、技術決策（plan mode，唯讀） | 設計文件 + 介面定義 |
-| **implementer** | 寫/改程式碼 | 程式碼檔案 |
-| **tester** | 實作後寫測試 | 測試檔案 + 測試報告 |
-| **reviewer** | 程式碼變更後審查 | Review 報告 |
-| **security-auditor** | 安全敏感的變更 | 安全報告 |
-| **integrator** | 多 agent 工作完成後合併 | 整合報告 |
-| **documenter** | 功能完成後更新文件 | 文件檔案 |
-| **doc-manager** | 管理報告歸檔和文件索引 | INDEX.md + 歸檔 |
-| **reporter** | 任何開發活動後產生報告 | 結構化報告 |
+| **implementer** | 寫/改程式碼、多 agent 工作完成後合併整合 | 程式碼檔案 + 整合報告 |
+| **tester** | 寫/跑測試、程式碼審查、安全掃描 | 測試檔案 + 測試報告 + Review 報告 + 安全報告 |
+| **documenter** | 更新文件、產生報告、管理報告歸檔和文件索引 | 文件檔案 + 結構化報告 + INDEX.md + 歸檔 |
 
 ---
 
@@ -520,11 +480,10 @@ graph TD
 
 系統自動：
 1. 分析現有 API 結構
-2. 啟動 implementer + tester + reviewer（3 agents）
+2. 啟動 implementer + tester（2 agents）
 3. Implementer 寫 controller + use case
-4. Tester 寫測試
-5. Reviewer 審查
-6. 回報結果
+4. Tester 寫測試並審查
+5. 回報結果
 
 ### 範例 2: 中型功能（用戶認證系統）
 
@@ -536,12 +495,9 @@ token refresh endpoints. Include middleware for route protection.
 系統自動：
 1. Architect 設計認證架構（Clean Architecture）
 2. 3 個 Implementer 並行：auth middleware / user endpoints / token service
-3. Tester 寫全面測試
-4. Reviewer + Security Auditor 並行審查
-5. Integrator 合併並驗證
-6. Documenter 更新 API 文件
-7. Reporter 產生所有報告
-8. Doc Manager 歸檔
+3. Tester 寫全面測試並進行安全審查
+4. Implementer 合併並驗證
+5. Documenter 更新 API 文件、產生所有報告並歸檔
 
 ### 範例 3: 大規模重構
 
@@ -577,7 +533,7 @@ token refresh endpoints. Include middleware for route protection.
 
 ### 9.1 報告自動產生
 
-每次 agent 活動後，reporter 會自動產生結構化報告。
+每次 agent 活動後，documenter 會自動產生結構化報告。
 
 報告位置：
 ```
@@ -946,11 +902,11 @@ grep AGENT_TEAMS .claude/settings.json
 
 ### 報告沒有被歸檔
 
-確認 `doc-manager` agent 在 `/assemble` 的執行流程中被啟動。
+確認 `documenter` agent 在 `/assemble` 的執行流程中被啟動。
 
 手動歸檔：
 ```
-Use the doc-manager agent to file all pending reports and update the index
+Use the documenter agent to file all pending reports and update the index
 ```
 
 ### Hook 沒有觸發
@@ -975,12 +931,12 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/agent-army:assemble [desc]` | 集結 Agent 大軍 | `/agent-army:assemble add user auth` |
 | `/agent-army:sprint [desc]` | Sprint 規劃 | `/agent-army:sprint dashboard feature` |
 | `/agent-army:quality-gate [scope]` | 品質檢查 | `/agent-army:quality-gate src/` |
-| `/agent-army:context-sync [action]` | Context 管理 | `/agent-army:context-sync init` |
 | `/agent-army:integration-test [scope]` | 整合測試編排 | `/agent-army:integration-test src/auth/` |
 | `/agent-army:code-review [scope]` | 程式碼審查編排 | `/agent-army:code-review staged` |
 | `/agent-army:retrospective` | Mission 回顧 | `/agent-army:retrospective` |
 | `/agent-army:tdd [feature]` | TDD 強制執行 | `/agent-army:tdd add validation logic` |
 | `/agent-army:fix [error]` | 智慧問題修復 | `/agent-army:fix build fails with type error` |
+| `/agent-army:timesheet [range]` | 工時分析 | `/agent-army:timesheet today` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ### 手動安裝版（無前綴）
@@ -990,14 +946,14 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/assemble [desc]` | 集結 Agent 大軍 | `/assemble add user auth` |
 | `/sprint [desc]` | Sprint 規劃 | `/sprint dashboard feature` |
 | `/quality-gate [scope]` | 品質檢查 | `/quality-gate src/` |
-| `/context-sync [action]` | Context 管理 | `/context-sync init` |
 | `/integration-test [scope]` | 整合測試編排 | `/integration-test src/auth/` |
 | `/code-review [scope]` | 程式碼審查編排 | `/code-review staged` |
 | `/retrospective` | Mission 回顧 | `/retrospective` |
 | `/tdd [feature]` | TDD 強制執行 | `/tdd add validation logic` |
 | `/fix [error]` | 智慧問題修復 | `/fix build fails with type error` |
+| `/timesheet [range]` | 工時分析 | `/timesheet today` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ---
 
-*Agent Army Usage Guide v1.2.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army Usage Guide v2.0.0 | Symbiotic Engineering | 2026-03-04*

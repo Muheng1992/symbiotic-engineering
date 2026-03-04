@@ -38,10 +38,10 @@ Classify the problem and identify root cause:
 | **Build Error** | Compilation failure, import errors, missing deps | `implementer` |
 | **Test Failure** | Assertion errors, test timeout, coverage drop | `tester` |
 | **Runtime Bug** | Unexpected behavior, crash, wrong output | `implementer` |
-| **Security Issue** | Vulnerability report, OWASP finding, auth bypass | `security-auditor` → `implementer` |
+| **Security Issue** | Vulnerability report, OWASP finding, auth bypass | `tester` → `implementer` |
 | **Architecture Violation** | Layer dependency violation, circular import | `architect` → `implementer` |
 | **Performance Issue** | Slow queries, memory leak, high latency | `architect` → `implementer` |
-| **Integration Failure** | API mismatch, data format error, connection refused | `integrator` → `implementer` |
+| **Integration Failure** | API mismatch, data format error, connection refused | `implementer` |
 | **Documentation Gap** | Missing/outdated docs, wrong API description | `documenter` |
 
 ### Root Cause Analysis
@@ -88,8 +88,7 @@ For complex problems spanning multiple concerns:
 1. Spawn `architect` to analyze impact and design fix approach
 2. Spawn `implementer` to apply the code changes
 3. Spawn `tester` to verify fix and add regression tests
-4. Spawn `reviewer` to check the fix quality
-5. Spawn `security-auditor` if the fix touches security-sensitive code
+4. Spawn `tester` to review code and check fix quality
 
 ### Fix Priority Matrix
 

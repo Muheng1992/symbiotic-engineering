@@ -134,10 +134,9 @@ After execution begins, periodically:
 | 2 | Core logic A | M | implementer | pending | 1 |
 | 3 | Core logic B | M | implementer | pending | 1 |
 | 4 | Unit tests | M | tester | pending | 2, 3 |
-| 5 | Integration | S | integrator | pending | 2, 3 |
-| 6 | Code review | S | reviewer | pending | 4, 5 |
+| 5 | Integration | S | implementer | pending | 2, 3 |
+| 6 | Quality check | S | tester | pending | 4, 5 |
 | 7 | Documentation | S | documenter | pending | 5 |
-| 8 | Reports | S | reporter | pending | 4, 6 |
 
 ## Risk Register
 | Risk | Impact | Mitigation |

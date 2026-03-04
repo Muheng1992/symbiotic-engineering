@@ -30,7 +30,7 @@ Analyze the mission across five dimensions:
 - Estimated token usage: was the model tiering effective?
 
 ### 2.2 Quality Outcomes
-- How many issues did the reviewer find?
+- How many issues did the tester find during review?
 - How many security findings from the auditor?
 - How many fix iterations were needed before approval?
 - Did the quality gate pass on the first attempt?
@@ -44,7 +44,7 @@ Analyze the mission across five dimensions:
 - Did agents have clear task boundaries?
 - Were there file conflicts or scope overlaps?
 - Did the tech-lead effectively delegate vs self-implement?
-- Were adversarial reviews constructive and actionable?
+- Were quality reviews constructive and actionable?
 
 ### 2.5 Plan Accuracy
 - Did the original plan match the actual execution?

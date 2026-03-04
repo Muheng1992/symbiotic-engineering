@@ -1,90 +1,90 @@
-# Agent Army Role Catalog
+# Agent Army — Role Catalog (v2.0)
 
-## Complete Role Registry
+> 5 specialized agents for efficient Human-AI collaborative development.
 
-| Role | Agent File | Primary Skill | Model | Memory | Key Tools |
-|------|-----------|---------------|-------|--------|-----------|
-| Tech Lead | `tech-lead.md` | Orchestration | inherit | project | All + Agent |
-| Architect | `architect.md` | System Design | inherit | project | Read, Grep, Write |
-| Implementer | `implementer.md` | Coding | inherit | project | Read, Write, Edit, Bash |
-| Tester | `tester.md` | Testing | inherit | project | Read, Write, Bash |
-| Reviewer | `reviewer.md` | Code Review | inherit | project | Read, Grep, Glob |
-| Documenter | `documenter.md` | Documentation | sonnet | project | Read, Write, Edit |
-| Security Auditor | `security-auditor.md` | Security | inherit | project | Read, Grep, Bash |
-| Integrator | `integrator.md` | Integration | inherit | project | All |
-| Doc Manager | `doc-manager.md` | Doc Lifecycle | sonnet | project | Read, Write, Grep |
-| Reporter | `reporter.md` | Report Generation | sonnet | project | Read, Write |
+## Role Registry
 
-## Role Interaction Matrix
+### 1. tech-lead
+- **Type**: Orchestration
+- **Tools**: Agent, Read, Grep, Glob, Bash
+- **Model**: inherit
+- **Responsibility**: Task decomposition, agent coordination, quality oversight, decision-making
+- **Does NOT**: Write code directly
+- **When to Use**: Always present as the orchestrator in team mode
 
-```
-                Architect  Implementer  Tester  Reviewer  Documenter  Security  Integrator  DocMgr  Reporter
-Architect         —        provides     —       —         provides    consults    —          —       —
-Implementer    receives      —         —       receives  provides    receives  provides    —       provides
-Tester            —        receives     —       —         —           —        provides    —       provides
-Reviewer          —        reviews      —        —        —           —        provides    —       provides
-Documenter     receives    receives   receives   —         —          receives    —         provides provides
-Security          —        reviews      —       shares     —           —        provides    —       provides
-Integrator     receives    receives   receives receives    —          receives    —          —       provides
-DocMgr            —          —          —        —        manages      —          —          —       receives
-Reporter          —          —          —        —          —           —          —         provides   —
-```
+### 2. architect
+- **Type**: Design
+- **Tools**: Read, Grep, Glob, Bash
+- **Model**: inherit
+- **Permission**: plan mode (read-only)
+- **Responsibility**: System design, API contracts, technology decisions, ADRs
+- **Does NOT**: Implement code
+- **When to Use**: New modules, architectural decisions, API design
+
+### 3. implementer
+- **Type**: Execution + Integration
+- **Tools**: Read, Grep, Glob, Bash, Write, Edit
+- **Model**: inherit
+- **Isolation**: worktree
+- **Responsibility**: Code implementation, merge coordination, E2E verification, dependency resolution
+- **Merged From**: implementer + integrator
+- **When to Use**: Writing code, refactoring, integrating multi-agent work
+
+### 4. tester
+- **Type**: Quality Assurance
+- **Tools**: Read, Grep, Glob, Bash, Write, Edit
+- **Model**: inherit
+- **Responsibility**: Unit/integration/E2E testing, code review, security auditing (OWASP)
+- **Merged From**: tester + reviewer + security-auditor
+- **When to Use**: After implementation for testing, review, and security verification
+
+### 5. documenter
+- **Type**: Documentation & Reporting
+- **Tools**: Read, Grep, Glob, Bash, Write, Edit
+- **Model**: sonnet
+- **Responsibility**: API docs, README, ADRs, report generation, filing, indexing, archiving
+- **Merged From**: documenter + reporter + doc-manager
+- **When to Use**: After implementation for documentation and report management
+
+## Interaction Matrix
+
+| From ↓ / To → | tech-lead | architect | implementer | tester | documenter |
+|----------------|-----------|-----------|-------------|--------|------------|
+| **tech-lead** | — | Design requests | Task assignment | Quality check | Doc requests |
+| **architect** | Design proposals | — | Design handoff | — | — |
+| **implementer** | Status updates | Design questions | Peer coordination | — | — |
+| **tester** | Quality reports | Design feedback | Fix requests | Peer coordination | — |
+| **documenter** | Doc status | — | Code questions | Review data | — |
 
 ## Role Assignment Decision Tree
 
 ```
-Is the task about design/architecture?
-  YES → architect
-  NO ↓
-Is it about writing/modifying code?
-  YES → implementer (spawn multiple if independent files)
-  NO ↓
-Is it about writing/running tests?
-  YES → tester
-  NO ↓
-Is it about reviewing code quality?
-  YES → reviewer
-  NO ↓
-Is it about security analysis?
-  YES → security-auditor
-  NO ↓
-Is it about combining multiple agents' work?
-  YES → integrator
-  NO ↓
-Is it about writing documentation?
-  YES → documenter
-  NO ↓
-Is it about managing/filing reports?
-  YES → doc-manager + reporter
-  NO ↓
-Is it a complex multi-step task?
-  YES → tech-lead (orchestrates sub-agents)
-  NO → implementer (default)
+Is it a design/architecture task?
+├── Yes → architect
+└── No → Is it code implementation or integration?
+    ├── Yes → implementer
+    └── No → Is it testing, review, or security?
+        ├── Yes → tester
+        └── No → Is it documentation or reporting?
+            ├── Yes → documenter
+            └── No → tech-lead (coordination)
 ```
 
 ## Scaling Patterns
 
-### Horizontal Scaling (Multiple Instances)
-These roles support multiple parallel instances:
-- **implementer** (x1-5): Each works on different files/components
-- **tester** (x1-2): Unit tester + integration tester
-- **reviewer** (x1-3): Security focus + performance focus + quality focus
-
-### Roles That Should Be Singleton
-- **architect**: One source of truth for design
-- **integrator**: One merge coordinator
-- **doc-manager**: One librarian
-- **tech-lead**: One orchestrator
+| Grade | tech-lead | architect | implementer | tester | documenter | Total |
+|-------|-----------|-----------|-------------|--------|------------|-------|
+| S     | 0         | 0         | 0           | 0      | 0          | 0 (direct) |
+| A     | 0         | 0         | 1           | 1      | 0          | 2-3   |
+| B     | 0         | 0-1       | 1-3         | 1      | 1          | 3-5   |
+| C     | 1         | 1         | 2-5         | 1-2    | 1          | 5-10  |
 
 ## Cost Optimization
 
 | Agent | Recommended Model | Rationale |
 |-------|------------------|-----------|
-| Explore (built-in) | haiku | Fast, read-only, low cost |
-| documenter | sonnet | Good writing, lower cost than opus |
-| reporter | sonnet | Template-based, doesn't need opus |
-| doc-manager | sonnet | Organizational, not creative |
-| reviewer | inherit (opus) | Needs deep reasoning for review |
-| architect | inherit (opus) | Needs creative design thinking |
-| implementer | inherit (opus) | Needs full coding capability |
-| security-auditor | inherit (opus) | Needs deep security knowledge |
+| tech-lead | Opus (inherit) | Complex reasoning for coordination |
+| architect | Opus (inherit) | Design decisions need deep reasoning |
+| implementer | Opus (inherit) | Code quality requires strong model |
+| tester | Opus (inherit) | Review + security needs strong reasoning |
+| documenter | Sonnet | Documentation is less reasoning-intensive |

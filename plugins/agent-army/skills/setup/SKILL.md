@@ -108,7 +108,7 @@ Use `mkdir -p` to create all directories. Then create the following files:
 
 ---
 
-*This index is maintained by the `doc-manager` agent. Update after filing any new report.*
+*This index is maintained by the `documenter` agent. Update after filing any new report.*
 ```
 
 ### docs/archive/ARCHIVE-INDEX.md
@@ -258,9 +258,9 @@ After setup, verify:
 - .claude/settings.json — Environment settings [created | merged]
 
 ### Next Steps
-1. Run `/agent-army:context-sync init` to initialize context management
-2. Run `/agent-army:assemble [feature]` to launch your first agent army
-3. Run `/agent-army:sprint [feature]` for sprint planning
+1. Run `/agent-army:assemble [feature]` to launch your first agent army
+2. Run `/agent-army:sprint [feature]` for sprint planning
+3. Run `/agent-army:quality-gate all` to verify project setup
 
 ### Available Commands
 | Command | Purpose |
@@ -268,6 +268,5 @@ After setup, verify:
 | `/agent-army:assemble [feature]` | Launch full agent army |
 | `/agent-army:sprint [feature]` | Sprint planning & execution |
 | `/agent-army:quality-gate [scope]` | Quality checkpoint |
-| `/agent-army:context-sync [action]` | Context management |
 | `/agent-army:setup` | This setup (re-run safe) |
 ```

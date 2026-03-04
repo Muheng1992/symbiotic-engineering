@@ -208,7 +208,7 @@ describe('[ModuleName]', () => {
 | Adapters | Integration tests | Mock external services |
 | Infrastructure | E2E tests | Real dependencies |
 
-## Code Review Criteria (for reviewer agent)
+## Code Review Criteria (for tester agent)
 
 ### Must Pass (Critical)
 1. Clean Architecture dependency rule respected
