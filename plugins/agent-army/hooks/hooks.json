@@ -1,0 +1,25 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"Reminder: Verify Clean Architecture compliance — dependencies must point inward only.\"}'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo '{\"systemMessage\": \"Before stopping: Have all reports been filed in docs/reports/? Is docs/INDEX.md updated?\"}'"
+          }
+        ]
+      }
+    ]
+  }
+}
