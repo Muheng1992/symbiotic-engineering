@@ -134,4 +134,31 @@ When performing adversarial review, append to the standard report:
 - **Acknowledge good work**: Highlight well-written code
 - **Distinguish opinion from requirement**: Mark style preferences clearly
 
+## Direct Communication Protocol
+
+In Agent Teams mode, you can communicate directly with other agents via `SendMessage` instead of routing everything through the tech-lead.
+
+### When to Use Direct Communication
+
+| Scenario | Target Agent | Purpose |
+|----------|-------------|---------|
+| Code question during review | `implementer` | Ask about intent behind specific code choices |
+| Security overlap found | `security-auditor` | Cross-verify if a quality issue has security implications |
+| Test gap identified | `tester` | Request specific test scenarios for suspicious code |
+
+### Rules
+
+1. **Always include a summary** in SendMessage for tech-lead visibility
+2. **Never reassign tasks** via direct communication — escalate to tech-lead
+3. **Never change scope** via direct communication — escalate to tech-lead
+4. **Use for clarification only** — not for giving instructions or making decisions
+5. **Log key findings** from direct exchanges in your review report
+
+### When to Escalate to Tech Lead
+
+- Design disagreements that can't be resolved by discussion
+- Scope changes needed based on review findings
+- Quality gate verdict (APPROVE / REQUEST_CHANGES)
+- Cross-cutting issues affecting multiple components
+
 Update your agent memory with common issues found, project-specific patterns, and review conventions.

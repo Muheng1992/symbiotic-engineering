@@ -1,6 +1,6 @@
 # Agent Army 系統設計文件
 
-> **版本**: 1.2.0 | **最後更新**: 2026-03-04
+> **版本**: 1.3.0 | **最後更新**: 2026-03-04
 > **目標**: 讓單人開發者透過 Claude Code CLI 指揮 AI Agent 大軍，實現從規劃到部署的全自動化軟體開發流程
 
 ---
@@ -185,7 +185,7 @@ graph TB
 │   ├── integrator.md                  # 整合專家
 │   ├── doc-manager.md                 # 文件生命週期管理員
 │   └── reporter.md                    # 報告產生器
-├── skills/                            # 10 個核心 Skill（含 setup）
+├── skills/                            # 10 個核心 Skill（不含 setup）
 │   ├── assemble/                      # Agent 大軍集結器
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -203,7 +203,13 @@ graph TB
 │   │   └── SKILL.md
 │   ├── integration-test/              # 整合測試編排
 │   │   └── SKILL.md
-│   └── code-review/                   # 程式碼審查編排
+│   ├── code-review/                   # 程式碼審查編排
+│   │   └── SKILL.md
+│   ├── retrospective/                 # Mission 回顧學習
+│   │   └── SKILL.md
+│   ├── tdd/                           # TDD 測試驅動開發
+│   │   └── SKILL.md
+│   └── fix/                           # 智慧問題修復
 │       └── SKILL.md
 └── hooks/                             # 品質保證 Hooks
     └── scripts/
@@ -241,6 +247,42 @@ docs/                                  # 文件與報告（歷史保留）
 | Context 管理 | CLAUDE.md + Agent Memory + Skills | 三層記憶架構、自動載入 |
 | 品質保證 | Hooks + Quality Gate Skill | 事件驅動、自動觸發 |
 | 報告儲存 | Git-tracked `docs/reports/` | 版本控制、歷史保留 |
+
+### 2.4 任務複雜度分級（v1.3 新增）
+
+在啟動 Agent 前，先對任務進行 S/A/B/C 分級，避免小任務啟動完整大軍造成 token 浪費。
+
+```mermaid
+graph TD
+    START[任務輸入] --> Q1{影響幾個檔案?}
+
+    Q1 -->|1 個| S[S 級 — 直接做]
+    Q1 -->|1-3 個| A[A 級 — 最小團隊]
+    Q1 -->|4-15 個| Q2{需要架構設計?}
+    Q1 -->|15+ 個| C[C 級 — 完整大軍]
+
+    Q2 -->|No| A
+    Q2 -->|Yes| B[B 級 — 標準團隊]
+
+    S --> S_TEAM["0 agents<br/>直接實作"]
+    A --> A_TEAM["2-3 agents<br/>implementer + tester"]
+    B --> B_TEAM["4-7 agents<br/>architect + impl(1-3) + tester + reviewer + documenter"]
+    C --> C_TEAM["9+ agents<br/>全員出動"]
+
+    style S fill:#4a9,stroke:#2d7,color:#fff
+    style A fill:#49a,stroke:#27d,color:#fff
+    style B fill:#e96,stroke:#c74,color:#fff
+    style C fill:#e74,stroke:#c52,color:#fff
+```
+
+| 級別 | 範圍 | 檔案數 | Agent 數 | 文件策略 | Token 估算 |
+|------|------|--------|---------|---------|-----------|
+| **S** | 修 typo、改設定值 | 1 | 0 | 無需 | ~5K |
+| **A** | 小功能、修 bug | 1-3 | 2-3 | implementer 順手更新 | ~50-100K |
+| **B** | 新 API、模組重構 | 4-15 | 4-7 | 單一 documenter 統包 | ~200-400K |
+| **C** | 新子系統、大型重構 | 15+ | 9+ | documenter + reporter + doc-manager | ~500K-1M |
+
+**成本最佳化規則**: 絕不使用 C 級團隊執行 B 級任務。額外 agent 的協調稅會抵消並行收益。
 
 ---
 
@@ -314,6 +356,8 @@ graph LR
 | Documenter | Technical Writer | 寫文件 | sonnet | 單例 | project |
 | Doc Manager | Librarian | 歸檔、索引 | sonnet | 單例 | project |
 | Reporter | Analyst | 產生報告 | sonnet | 單例 | project |
+
+> **v1.3 變更**: B 級任務中，Documenter 同時承擔 Reporter 和 Doc Manager 的職責（撰寫文件 + 產生報告 + 歸檔索引），僅在 C 級任務才分別生成三個獨立的文件 Agent。
 
 ### 3.3 Clean Architecture 在 Agent 中的體現
 
@@ -435,6 +479,8 @@ graph TD
 
 ### 5.1 標準開發流程
 
+> **注意**: 以下流程圖為 C 級完整流程。B 級任務中，Phase 5 的 Doc/DM/Reporter 三個角色由單一 Documenter 統包。A 級任務不需要獨立文件 Agent。
+
 ```mermaid
 sequenceDiagram
     participant Dev as Developer
@@ -528,6 +574,109 @@ graph TD
 | **Subagents** | 獨立短任務 | ≤10 | 透過主 agent | 共享主 context | 低-中 |
 | **Agent Teams** | 需協作的任務 | 無硬限制 | 直接訊息/共享任務 | 獨立 context | 高 |
 | **`/batch`** | 大規模相同變更 | 5-30 | 無（各自獨立） | Git worktree 隔離 | 中-高 |
+
+### 5.4 失敗恢復協議（v1.3 新增）
+
+當 Agent 失敗時的處理流程：
+
+```mermaid
+graph TD
+    FAIL[Agent 失敗] --> DETECT[1. 偵測失敗類型]
+    DETECT --> PRESERVE[2. 保留有效的部分成果]
+    PRESERVE --> CLASSIFY{3. 分類}
+
+    CLASSIFY -->|Context 溢出| R1[拆分任務<br/>縮小範圍重新 spawn]
+    CLASSIFY -->|幻覺輸出| R2[加入更嚴格約束<br/>指定檔案路徑重新 spawn]
+    CLASSIFY -->|超時| R3[重試一次<br/>失敗則更換策略]
+    CLASSIFY -->|修改錯誤檔案| R4[git checkout 還原<br/>加入檔案邊界重新 spawn]
+    CLASSIFY -->|卡在迴圈| R5[停止 agent<br/>換方法重新 spawn]
+
+    R1 --> RESUME[4. 傳遞已完成部分 context]
+    R2 --> RESUME
+    R3 --> RESUME
+    R4 --> RESUME
+    R5 --> RESUME
+
+    RESUME --> LOG[5. 記錄失敗到 mission report]
+
+    style FAIL fill:#e74,stroke:#c52,color:#fff
+    style RESUME fill:#4a9,stroke:#2d7,color:#fff
+```
+
+**升級規則**:
+- 1 次重試 → 可接受（暫時性失敗）
+- 2 次重試 → 重新思考任務分解方式
+- 3+ 次重試 → 停止，請求開發者指導
+
+### 5.5 Agent 直接通訊（v1.3 新增）
+
+在 Agent Teams 模式下，定義哪些溝通應路由回 Tech Lead，哪些允許直接通訊。
+
+```mermaid
+graph TD
+    subgraph "路由回 Tech Lead（預設）"
+        TL1[任務重分配]
+        TL2[設計決策爭議]
+        TL3[品質閘門裁決]
+        TL4[跨切面問題]
+    end
+
+    subgraph "允許直接通訊"
+        DC1["reviewer → implementer<br/>程式碼意圖釐清"]
+        DC2["security-auditor → reviewer<br/>嚴重性交叉驗證"]
+        DC3["security-auditor → implementer<br/>CRITICAL 漏洞緊急通知"]
+        DC4["tester → implementer<br/>預期行為確認"]
+        DC5["integrator → implementer<br/>合併衝突解決"]
+    end
+
+    style TL1 fill:#e74,stroke:#c52,color:#fff
+    style TL2 fill:#e74,stroke:#c52,color:#fff
+    style TL3 fill:#e74,stroke:#c52,color:#fff
+    style TL4 fill:#e74,stroke:#c52,color:#fff
+    style DC1 fill:#4a9,stroke:#2d7,color:#fff
+    style DC2 fill:#4a9,stroke:#2d7,color:#fff
+    style DC3 fill:#a49,stroke:#d27,color:#fff
+    style DC4 fill:#4a9,stroke:#2d7,color:#fff
+    style DC5 fill:#4a9,stroke:#2d7,color:#fff
+```
+
+**規則**: 直接通訊僅限於釐清和緊急通知。任務分配、範圍變更、設計決策必須透過 Tech Lead。
+
+### 5.6 子協調者模式（v1.3 新增）
+
+C 級任務（15+ 檔案、7+ agents）時，將 Integrator 提升為子協調者，避免 Tech Lead context window 溢出。
+
+```mermaid
+graph TB
+    subgraph "策略層 — Tech Lead"
+        S1[階段決策]
+        S2[計畫批核/駁回]
+        S3[最終品質簽核]
+    end
+
+    subgraph "戰術層 — Integrator 子協調者"
+        T1[監控 implementer 進度]
+        T2[解決檔案層級衝突]
+        T3[執行中間測試檢查]
+        T4["協調 reviewer ↔ implementer 修復循環"]
+        T5[向 Tech Lead 回報匯總狀態]
+    end
+
+    S1 --> T1
+    S2 --> T1
+    T5 --> S3
+
+    style S1 fill:#e74,stroke:#c52,color:#fff
+    style S2 fill:#e74,stroke:#c52,color:#fff
+    style S3 fill:#e74,stroke:#c52,color:#fff
+    style T1 fill:#49a,stroke:#27d,color:#fff
+    style T2 fill:#49a,stroke:#27d,color:#fff
+    style T3 fill:#49a,stroke:#27d,color:#fff
+    style T4 fill:#49a,stroke:#27d,color:#fff
+    style T5 fill:#49a,stroke:#27d,color:#fff
+```
+
+**啟動條件**: 任務為 C 級、3+ implementer 並行、Tech Lead context 壓力大時由 Tech Lead 顯式啟動。
 
 ---
 
@@ -771,7 +920,7 @@ graph TB
         subgraph "plugins/agent-army/"
             PJ[".claude-plugin/plugin.json"]
             AG["agents/ (10 agents)"]
-            SK["skills/ (6 skills)"]
+            SK["skills/ (11 skills)"]
             HK["hooks/hooks.json"]
             ST["settings.json"]
         end
@@ -938,4 +1087,4 @@ sequenceDiagram
 
 ---
 
-*Agent Army System v1.2.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army System v1.3.0 | Symbiotic Engineering | 2026-03-04*

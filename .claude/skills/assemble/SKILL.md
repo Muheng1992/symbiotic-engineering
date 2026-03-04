@@ -50,33 +50,59 @@ Based on the assessment, create a structured plan:
 [What must pass before the mission is complete]
 ```
 
+## Phase 1.5: Task Complexity Grading
+
+**Before assembling, classify the task to determine the right team size:**
+
+| Grade | Scope | Files | Team Strategy |
+|-------|-------|-------|---------------|
+| **S — Trivial** | Single-line fix, config change, typo | 1 | No agents — do it directly |
+| **A — Small** | Bug fix, small feature, helper function | 1-3 | Minimal Team (2-3 agents) |
+| **B — Medium** | New endpoint, module refactor, integration | 4-15 | Standard Team (4-6 agents) |
+| **C — Large** | New subsystem, major refactor, cross-cutting | 15+ | Full Army (7-10 agents) |
+
+### Grading Checklist
+
+- [ ] Estimated file count? → Determines base grade
+- [ ] Needs architectural design? → Upgrade to B minimum
+- [ ] Touches auth/crypto/user data? → Add security-auditor
+- [ ] Multiple parallel implementers? → Add integrator
+- [ ] New public API surface? → Upgrade documentation level
+
+**If grade is S**: Skip team assembly entirely. Implement directly.
+
 ## Phase 2: Team Assembly
 
-Spawn the appropriate agents based on task complexity:
+Spawn the appropriate agents based on **task grade**:
 
-### Minimal Team (Small Feature)
+### Grade A — Minimal Team (2-3 agents)
 1. `implementer` — Write the code
 2. `tester` — Write and run tests
-3. `reviewer` — Review the changes
+3. `reviewer` — Review the changes (optional for trivial fixes)
 
-### Standard Team (Medium Feature)
-1. `architect` — Design the solution
+**Documentation**: Implementer updates docs inline. No separate doc agent.
+
+### Grade B — Standard Team (4-7 agents)
+1. `architect` — Design the solution (if design needed)
 2. `implementer` (x1-3) — Implement components in parallel
 3. `tester` — Write comprehensive tests
 4. `reviewer` — Code review
-5. `documenter` — Update documentation
-6. `reporter` — Generate reports
+5. `documenter` — Handles ALL documentation: writing, report generation, AND filing
 
-### Full Army (Large Feature / New Module)
+**Documentation**: Single `documenter` agent handles everything — writing docs, generating reports (using reporter templates), and filing/indexing (using doc-manager conventions). This eliminates 2 agent spawns and their coordination overhead.
+
+### Grade C — Full Army (9+ agents)
 1. `architect` — System design
 2. `implementer` (x2-5) — Parallel implementation
 3. `tester` (x1-2) — Unit + integration tests
 4. `reviewer` — Code review
 5. `security-auditor` — Security review
-6. `documenter` — Documentation
-7. `doc-manager` — Report filing & doc maintenance
-8. `reporter` — Generate all reports
-9. `integrator` — Merge and verify
+6. `integrator` — Merge, verify, AND sub-coordinate execution layer
+7. `documenter` — Documentation writing
+8. `reporter` — Report generation (separate for volume)
+9. `doc-manager` — Report filing & doc maintenance (separate for volume)
+
+**Documentation**: Full doc team justified by the volume of reports and documentation.
 
 ### Spawning Strategy
 
@@ -133,6 +159,14 @@ Then spawn reviewer → Review
 - Repeat until APPROVED
 
 ### Step 6: Documentation
+
+**Grade A tasks**:
+- No separate documenter — documentation included in implementation
+
+**Grade B tasks**:
+- Spawn single `documenter` — handles doc writing, report generation, AND filing
+
+**Grade C tasks**:
 - Spawn `documenter` to update docs
 - Spawn `reporter` to generate all reports
 - Spawn `doc-manager` to file and index reports
@@ -173,12 +207,14 @@ Generate a final mission report:
 
 ## Team Scaling Guidelines
 
-| Project Size | Files | Agents | Parallel Workers |
-|-------------|-------|--------|-----------------|
-| Tiny        | 1-3   | 3      | 1               |
-| Small       | 4-10  | 5      | 2               |
-| Medium      | 11-30 | 7      | 3-4             |
-| Large       | 30+   | 9+     | 5+              |
+| Grade | Files | Total Agents | Parallel Implementers | Doc Agents | Estimated Tokens |
+|-------|-------|-------------|----------------------|------------|-----------------|
+| **S** | 1     | 0           | 0                    | 0          | ~5K (direct)    |
+| **A** | 1-3   | 2-3         | 1                    | 0          | ~50-100K        |
+| **B** | 4-15  | 4-7         | 1-3                  | 1          | ~200-400K       |
+| **C** | 15+   | 9+          | 2-5                  | 3          | ~500K-1M        |
+
+**Cost Optimization Rule**: Never use a C-grade team for a B-grade task. The coordination tax of extra agents outweighs any parallelism benefit.
 
 ## Context Management
 
@@ -189,11 +225,40 @@ Generate a final mission report:
 
 ## Error Recovery
 
-If an agent fails:
-1. Check the error in the agent's output
-2. Spawn a replacement with additional context about the failure
-3. Resume from the last successful checkpoint
-4. Log the failure in the mission report
+### Failure Classification
+
+| Failure Type | Detection Signal | Recovery Strategy |
+|-------------|-----------------|-------------------|
+| **Context Overflow** | Agent output truncated mid-task | Split task smaller, re-spawn with narrower scope |
+| **Hallucination** | Agent produces incorrect output | Re-spawn with explicit file paths and constraints |
+| **Timeout** | No response within expected time | Retry once, then spawn replacement |
+| **Wrong Files** | Agent modifies out-of-scope files | `git checkout` affected files, re-spawn with boundaries |
+| **Stuck Loop** | Agent repeats same action | Stop agent, re-spawn with different approach |
+
+### Recovery Protocol
+
+1. **Detect** — Monitor agent output for failure signals
+2. **Preserve** — Save valid partial work (`git stash` or commit WIP)
+3. **Classify** — Match failure to table above
+4. **Recover** — Apply corresponding strategy
+5. **Resume** — Spawn replacement with:
+   - What was already completed
+   - The remaining subtask only (not the full original task)
+   - Why the previous attempt failed
+6. **Log** — Record failure in mission report
+
+### Escalation Rules
+
+- **1 retry** → Acceptable for transient failures
+- **2 retries** → Escalate: rethink the task decomposition
+- **3+ retries** → Stop and ask the developer for guidance
+
+### Partial Work Handling
+
+If an agent fails mid-task:
+- Valid changes → Stage and commit: `wip: partial [task]`
+- Invalid changes → Revert: `git checkout -- [files]`
+- Pass "completed portion" context to replacement agent
 
 For detailed role definitions, see [references/role-catalog.md](references/role-catalog.md).
 For workflow patterns, see [references/workflow-patterns.md](references/workflow-patterns.md).

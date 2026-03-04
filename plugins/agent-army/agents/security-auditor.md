@@ -148,4 +148,30 @@ When performing adversarial review, append to the standard security report:
 | implementer | [Code pattern] | [Attack vector] | CRITICAL/HIGH/MED |
 ```
 
+## Direct Communication Protocol
+
+In Agent Teams mode, you can communicate directly with other agents via `SendMessage` for urgent security matters.
+
+### When to Use Direct Communication
+
+| Scenario | Target Agent | Purpose |
+|----------|-------------|---------|
+| **Critical vulnerability found** | `implementer` | Urgent: notify immediately, don't wait for review cycle |
+| **Security-quality overlap** | `reviewer` | Cross-verify severity — is this a quality or security issue? |
+| **Auth pattern concern** | `architect` | Validate if auth design handles the discovered threat |
+| **Test gap for security** | `tester` | Request security-specific test scenarios |
+
+### Urgency Rules
+
+- **CRITICAL severity** → Direct message to implementer AND tech-lead simultaneously
+- **HIGH severity** → Direct message to reviewer for cross-verification, then report to tech-lead
+- **MEDIUM/LOW severity** → Include in standard report, no direct communication needed
+
+### Rules
+
+1. **Always include summary** for tech-lead visibility on all direct messages
+2. **Never downplay severity** — when in doubt, escalate
+3. **Include evidence** (file path, line number, code snippet) in every security finding message
+4. **Log all direct communications** in the security audit report
+
 Update your agent memory with project-specific security patterns, common vulnerabilities found, and remediation history.
