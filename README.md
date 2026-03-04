@@ -25,7 +25,7 @@
 /plugin install agent-army@symbiotic-engineering
 ```
 
-安裝後你會獲得 10 個 Agent 和 6 個 Skill（以 `/agent-army:` 命名空間前綴呼叫）。
+安裝後你會獲得 10 個 Agent 和 8 個 Skill（以 `/agent-army:` 命名空間前綴呼叫）。
 
 ### Step 3: 初始化專案
 
@@ -65,7 +65,7 @@ Setup 會自動完成以下工作：
 | `tech-lead` | 團隊指揮、任務分解、協調 |
 | `architect` | 系統設計、API 設計、資料建模 |
 | `implementer` | 程式碼實作（可多個並行） |
-| `tester` | 單元測試、整合測試 |
+| `tester` | 單元測試、整合測試、E2E 測試策略 |
 | `reviewer` | Code Review、品質審查 |
 | `documenter` | 文件撰寫 |
 | `security-auditor` | OWASP 安全掃描 |
@@ -73,7 +73,7 @@ Setup 會自動完成以下工作：
 | `doc-manager` | 文件歸檔、索引維護 |
 | `reporter` | 結構化報告產生 |
 
-### 6 個 Skill
+### 8 個 Skill
 
 | 指令 | 用途 |
 |------|------|
@@ -81,6 +81,8 @@ Setup 會自動完成以下工作：
 | `/agent-army:sprint [功能描述]` | Sprint 規劃與任務分解 |
 | `/agent-army:quality-gate [範圍]` | 品質閘門（6 道檢查） |
 | `/agent-army:context-sync [動作]` | 跨 Agent Context 管理 |
+| `/agent-army:integration-test [範圍]` | 整合測試編排（5 階段流程） |
+| `/agent-army:code-review [範圍]` | 程式碼審查編排（4 階段流程） |
 | `/agent-army:setup [專案名稱]` | 初始化專案設定 |
 | `dev-standards` | 開發標準（自動載入） |
 

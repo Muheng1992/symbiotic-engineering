@@ -177,7 +177,7 @@ graph TB
 │   ├── integrator.md                  # 整合專家
 │   ├── doc-manager.md                 # 文件生命週期管理員
 │   └── reporter.md                    # 報告產生器
-├── skills/                            # 6 個核心 Skill（含 setup）
+├── skills/                            # 8 個核心 Skill（含 setup）
 │   ├── assemble/                      # Agent 大軍集結器
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -191,7 +191,11 @@ graph TB
 │   │   └── SKILL.md
 │   ├── quality-gate/                  # 品質閘門
 │   │   └── SKILL.md
-│   └── context-sync/                  # Context 同步管理
+│   ├── context-sync/                  # Context 同步管理
+│   │   └── SKILL.md
+│   ├── integration-test/              # 整合測試編排
+│   │   └── SKILL.md
+│   └── code-review/                   # 程式碼審查編排
 │       └── SKILL.md
 └── hooks/                             # 品質保證 Hooks
     └── scripts/
@@ -346,6 +350,8 @@ sequenceDiagram
 | `/sprint` | 手動 (`/sprint [feature]`) | Main context | Sprint 規劃 |
 | `/quality-gate` | 手動 (`/quality-gate [scope]`) | Main context | 品質檢查 |
 | `/context-sync` | 手動 (`/context-sync [action]`) | Main context | Context 管理 |
+| `/integration-test` | 手動 (`/integration-test [scope]`) | Main context | 整合測試編排 |
+| `/code-review` | 手動 (`/code-review [scope]`) | Main context | 程式碼審查編排 |
 | `dev-standards` | 自動（Claude 判斷載入） | Preloaded in agents | 開發標準 |
 
 ### 4.3 Skill 與 Agent 的關係
@@ -358,6 +364,8 @@ graph TD
         S3[quality-gate]
         S4[context-sync]
         S5[dev-standards]
+        S6[integration-test]
+        S7[code-review]
     end
 
     subgraph "Agents"
@@ -378,6 +386,8 @@ graph TD
     S3 -->|validates via| A5
     S3 -->|validates via| A4
     S3 -->|validates via| A7
+    S6 -->|preloaded in| A4
+    S7 -->|preloaded in| A5
 
     S5 -->|preloaded in| A2
     S5 -->|preloaded in| A3
@@ -780,7 +790,7 @@ plugins/agent-army/                    # Plugin Root
 │   ├── integrator.md
 │   ├── doc-manager.md
 │   └── reporter.md
-├── skills/                            # 6 Skills
+├── skills/                            # 8 Skills
 │   ├── assemble/                      # Agent army orchestrator
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -789,6 +799,10 @@ plugins/agent-army/                    # Plugin Root
 │   ├── quality-gate/                  # Quality checkpoints
 │   │   └── SKILL.md
 │   ├── context-sync/                  # Context management
+│   │   └── SKILL.md
+│   ├── integration-test/             # Integration test orchestrator
+│   │   └── SKILL.md
+│   ├── code-review/                  # Code review orchestrator
 │   │   └── SKILL.md
 │   ├── dev-standards/                 # Coding standards (auto)
 │   │   ├── SKILL.md
@@ -899,4 +913,4 @@ sequenceDiagram
 
 ---
 
-*Agent Army System v1.0.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army System v1.1.0 | Symbiotic Engineering | 2026-03-04*

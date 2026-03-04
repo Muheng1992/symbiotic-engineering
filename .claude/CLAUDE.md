@@ -94,6 +94,8 @@ This project includes a multi-agent development system in `.claude/`:
 | `/sprint` | Sprint planning & execution | `/sprint [feature or issue]` |
 | `/quality-gate` | Quality checkpoint | `/quality-gate [scope]` |
 | `/context-sync` | Context management | `/context-sync [action]` |
+| `/integration-test` | Integration test orchestration | `/integration-test [scope]` |
+| `/code-review` | Code review orchestration | `/code-review [scope]` |
 | `dev-standards` | Coding standards (auto-loaded) | Automatic |
 
 ### Report Management

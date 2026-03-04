@@ -19,7 +19,8 @@
 10. [Plan 追蹤與可追溯性](#10-plan-追蹤與可追溯性)
 11. [自訂與擴展](#11-自訂與擴展)
 12. [分發與安裝到其他專案](#12-分發與安裝到其他專案)
-13. [疑難排解](#13-疑難排解)
+13. [功能更新流程](#13-功能更新流程)
+14. [疑難排解](#14-疑難排解)
 
 ---
 
@@ -347,6 +348,43 @@ Use the tester agent to write tests for the user module
 **用途**: 管理跨 agent 的共享 context
 
 **語法**: `/context-sync [init | refresh | status | export]`
+
+---
+
+### `/integration-test` — 整合測試編排器
+
+**用途**: 設計、設定、執行整合測試，並產出報告
+
+**語法**: `/integration-test [scope: module name, feature name, or "all"]`
+
+**五階段流程**:
+1. **Test Scope Analysis** — 識別整合邊界、元件依賴、外部服務
+2. **Environment Setup** — Test DB、Mock services、Test containers、Fixtures
+3. **Scenario Design** — 三層測試設計：
+   - Component Integration（模組間互動）
+   - Service Integration（API / DB / 外部服務）
+   - E2E Scenarios（完整使用者旅程）
+4. **Test Execution** — 執行策略、平行/循序、失敗分類
+5. **Result Analysis & Report** — 產出整合測試報告，歸檔到 `docs/reports/test/`
+
+---
+
+### `/code-review` — 程式碼審查編排器
+
+**用途**: 結構化多維度程式碼審查，自動 diff 分析與報告歸檔
+
+**語法**: `/code-review [scope: file path, branch, PR number, or "staged"]`
+
+**四階段流程**:
+1. **Diff Analysis** — 收集變更、分類檔案、識別高風險區域
+2. **Multi-Dimensional Review** — 五維度審查：
+   - Clean Architecture 合規
+   - Code Quality（檔案長度、命名、DRY）
+   - Security（OWASP Top 10）
+   - Performance（N+1、阻塞操作）
+   - Testability & Maintainability
+3. **Structured Report** — Severity 分級（CRITICAL / HIGH / MEDIUM / LOW）
+4. **Report Filing** — 歸檔到 `docs/reports/code-review/`
 
 ---
 
@@ -694,7 +732,90 @@ mkdir -p /new-project/docs/{reports/{code-review,test,security,fix,integration,q
 
 ---
 
-## 13. 疑難排解
+## 13. 功能更新流程
+
+當你新增或修改 Agent Army 的功能（新 agent、新 skill、修改既有定義）時，需要同步更新多處。以下是標準更新 checklist。
+
+### 13.1 新增 Skill 的更新清單
+
+| # | 更新項目 | 檔案位置 | 說明 |
+|---|---------|---------|------|
+| 1 | **建立 Skill 定義** | `plugins/agent-army/skills/[name]/SKILL.md` | Plugin 主副本 |
+| 2 | **建立本地副本** | `.claude/skills/[name]/SKILL.md` | 與主副本完全相同 |
+| 3 | **更新關聯 Agent** | `plugins/agent-army/agents/[agent].md` + `.claude/agents/[agent].md` | 在 `skills:` 陣列加入新 skill |
+| 4 | **更新 Quality Gate**（如適用） | 兩處 `quality-gate/SKILL.md` | 加入新的品質檢查項目 |
+| 5 | **更新設計文件** | `docs/AGENT-ARMY-DESIGN.md` | Skill 表格 + Mermaid 圖 + 目錄結構 |
+| 6 | **更新 README** | `README.md` | Skill 數量 + Skill 表格 |
+| 7 | **更新 CLAUDE.md** | `.claude/CLAUDE.md` | Available Skills 表格 |
+| 8 | **更新使用指南** | `docs/AGENT-ARMY-USAGE.md` | Skill 說明 + 速查表 |
+| 9 | **更新 Marketplace** | `.claude-plugin/marketplace.json` | description + version |
+| 10 | **更新 Plugin manifest** | `plugins/agent-army/.claude-plugin/plugin.json` | description + version |
+
+### 13.2 新增 Agent 的更新清單
+
+| # | 更新項目 | 檔案位置 |
+|---|---------|---------|
+| 1 | 建立 Agent 定義 | `plugins/agent-army/agents/[name].md` + `.claude/agents/[name].md` |
+| 2 | 更新設計文件 | `docs/AGENT-ARMY-DESIGN.md`（角色矩陣 + Mermaid 圖） |
+| 3 | 更新 README | `README.md`（Agent 表格 + 數量） |
+| 4 | 更新 CLAUDE.md | `.claude/CLAUDE.md`（Available Agents 表格） |
+| 5 | 更新使用指南 | `docs/AGENT-ARMY-USAGE.md`（角色說明 + 決策流程圖） |
+| 6 | 更新 Marketplace/Plugin JSON | 兩處 JSON 的 description + version |
+
+### 13.3 版本號更新規則
+
+遵循語義化版本（Semantic Versioning）：
+
+| 變更類型 | 版本號位置 | 範例 |
+|----------|-----------|------|
+| 新增 skill / agent（向後相容） | MINOR | `1.0.0` → `1.1.0` |
+| 修改既有 skill / agent 行為 | MINOR | `1.1.0` → `1.2.0` |
+| 修正 bug / typo | PATCH | `1.1.0` → `1.1.1` |
+| 破壞性變更（移除 agent、改名） | MAJOR | `1.1.0` → `2.0.0` |
+
+需要同步更新 version 的檔案：
+- `.claude-plugin/marketplace.json` → `metadata.version` + plugin 的 `version`
+- `plugins/agent-army/.claude-plugin/plugin.json` → `version`
+
+### 13.4 發布更新到使用者
+
+```bash
+# 1. 完成所有修改並驗證
+#    - plugin 和 local 副本一致（diff 無差異）
+#    - frontmatter 格式正確
+#    - 所有文件同步更新
+
+# 2. Commit 並 push
+git add -A
+git commit -m "feat: add integration-test and code-review skills"
+git push origin main
+
+# 3. 使用者端更新
+/plugin marketplace update symbiotic-engineering
+/plugin update agent-army@symbiotic-engineering
+```
+
+### 13.5 驗證更新完整性
+
+更新完成後，執行以下驗證：
+
+```bash
+# 確認 plugin 和 local 副本一致
+diff plugins/agent-army/agents/[agent].md .claude/agents/[agent].md
+diff plugins/agent-army/skills/[skill]/SKILL.md .claude/skills/[skill]/SKILL.md
+
+# 確認 frontmatter 格式
+head -10 plugins/agent-army/skills/[skill]/SKILL.md
+head -15 plugins/agent-army/agents/[agent].md
+
+# 確認數量一致
+ls plugins/agent-army/skills/ | wc -l   # 應與文件中的數字一致
+ls plugins/agent-army/agents/ | wc -l   # 應與文件中的數字一致
+```
+
+---
+
+## 14. 疑難排解
 
 ### Agent 沒有出現
 
@@ -777,6 +898,8 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/agent-army:sprint [desc]` | Sprint 規劃 | `/agent-army:sprint dashboard feature` |
 | `/agent-army:quality-gate [scope]` | 品質檢查 | `/agent-army:quality-gate src/` |
 | `/agent-army:context-sync [action]` | Context 管理 | `/agent-army:context-sync init` |
+| `/agent-army:integration-test [scope]` | 整合測試編排 | `/agent-army:integration-test src/auth/` |
+| `/agent-army:code-review [scope]` | 程式碼審查編排 | `/agent-army:code-review staged` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ### 手動安裝版（無前綴）
@@ -787,8 +910,10 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/sprint [desc]` | Sprint 規劃 | `/sprint dashboard feature` |
 | `/quality-gate [scope]` | 品質檢查 | `/quality-gate src/` |
 | `/context-sync [action]` | Context 管理 | `/context-sync init` |
+| `/integration-test [scope]` | 整合測試編排 | `/integration-test src/auth/` |
+| `/code-review [scope]` | 程式碼審查編排 | `/code-review staged` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ---
 
-*Agent Army Usage Guide v1.1.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army Usage Guide v1.2.0 | Symbiotic Engineering | 2026-03-04*

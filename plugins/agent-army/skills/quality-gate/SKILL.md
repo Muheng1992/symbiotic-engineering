@@ -26,15 +26,25 @@ Run a comprehensive quality check on recent changes. All gates must pass before 
 
 ## Gate 2: Test Verification
 
-1. Run the full test suite
+### 2a: Unit Tests
+1. Run the full unit test suite
 2. Check for failures and regressions
 3. Measure coverage for changed files
-4. Report: PASS / FAIL with details
+
+### 2b: Integration Tests
+1. Check if integration tests exist for changed modules
+2. Run integration tests (component integration + service integration)
+3. Verify cross-layer interactions are covered
+4. Run E2E scenarios for affected user journeys (if applicable)
+
+Report: PASS / FAIL with details
 
 Minimum requirements:
-- All existing tests pass
-- New code has ≥ 80% coverage
+- All existing unit tests pass
+- New code has ≥ 80% unit test coverage
 - No test files without assertions
+- Integration tests exist for cross-module boundaries
+- All integration tests pass (no skipped without justification)
 
 ## Gate 3: Code Review
 
