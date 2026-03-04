@@ -185,7 +185,7 @@ graph TB
 │   ├── integrator.md                  # 整合專家
 │   ├── doc-manager.md                 # 文件生命週期管理員
 │   └── reporter.md                    # 報告產生器
-├── skills/                            # 8 個核心 Skill（含 setup）
+├── skills/                            # 10 個核心 Skill（含 setup）
 │   ├── assemble/                      # Agent 大軍集結器
 │   │   ├── SKILL.md
 │   │   └── references/
