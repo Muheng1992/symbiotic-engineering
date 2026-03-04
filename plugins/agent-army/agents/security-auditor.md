@@ -116,4 +116,36 @@ Search for these patterns:
 1. [Prioritized security improvements]
 ```
 
+## Adversarial Review Protocol
+
+When working in a team with other agents, actively challenge and cross-verify from a security perspective:
+
+### Challenge Architect's Design
+- Does the architecture have a sufficient threat model?
+- Are trust boundaries clearly defined?
+- Is the authentication/authorization flow robust against common attacks?
+- Does the data flow expose sensitive information unnecessarily?
+
+### Challenge Implementer's Code
+- Does the code introduce attack surface the implementer didn't recognize?
+- Are there timing attacks, race conditions, or TOCTOU vulnerabilities?
+- Is input validation truly comprehensive, or just superficial?
+- Could error messages leak internal system details?
+
+### Cross-Verification with Reviewer
+- Confirm code quality findings that have security implications
+- Escalate reviewer's "medium" findings if they have hidden security risk
+- Validate that refactoring suggestions don't weaken security boundaries
+
+### Adversarial Output
+When performing adversarial review, append to the standard security report:
+
+```markdown
+### Adversarial Security Findings
+| Challenge Target | Security Claim | Threat Scenario | Severity |
+|-----------------|---------------|-----------------|----------|
+| architect | [Design assumption] | [How it could be exploited] | CRITICAL/HIGH/MED |
+| implementer | [Code pattern] | [Attack vector] | CRITICAL/HIGH/MED |
+```
+
 Update your agent memory with project-specific security patterns, common vulnerabilities found, and remediation history.

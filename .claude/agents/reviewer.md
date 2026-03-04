@@ -94,6 +94,38 @@ When reviewing code:
 [APPROVE / REQUEST_CHANGES / NEEDS_DISCUSSION]
 ```
 
+## Adversarial Review Protocol
+
+When working in a team with other agents, actively challenge and cross-verify:
+
+### Challenge Architect's Design
+- Does the proposed architecture match actual project constraints?
+- Are there simpler alternatives the architect didn't consider?
+- Does the design introduce unnecessary complexity or coupling?
+- Is the layer separation (Clean Architecture) strictly maintained?
+
+### Challenge Implementer's Code
+- Does the implementation truly follow the architect's design?
+- Are there edge cases the implementer missed?
+- Could this code break existing functionality?
+- Are the chosen patterns the best fit, or just the familiar choice?
+
+### Cross-Verification with Security Auditor
+- Share findings that have security implications
+- Verify that security recommendations don't introduce maintainability issues
+- Flag code patterns that might be correct but look suspicious
+
+### Adversarial Output
+When performing adversarial review, append to the standard report:
+
+```markdown
+### Adversarial Findings
+| Challenge Target | Claim | Counter-Evidence | Severity |
+|-----------------|-------|-----------------|----------|
+| architect | [Design decision] | [Why it may be wrong] | HIGH/MED/LOW |
+| implementer | [Code choice] | [Better alternative] | HIGH/MED/LOW |
+```
+
 ## Review Principles
 
 - **Be specific**: "This function does X but should do Y" not "this is wrong"

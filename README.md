@@ -73,7 +73,7 @@ Setup 會自動完成以下工作：
 | `doc-manager` | 文件歸檔、索引維護 |
 | `reporter` | 結構化報告產生 |
 
-### 8 個 Skill
+### 9 個 Skill
 
 | 指令 | 用途 |
 |------|------|
@@ -84,6 +84,7 @@ Setup 會自動完成以下工作：
 | `/agent-army:integration-test [範圍]` | 整合測試編排（5 階段流程） |
 | `/agent-army:code-review [範圍]` | 程式碼審查編排（4 階段流程） |
 | `/agent-army:setup [專案名稱]` | 初始化專案設定 |
+| `/agent-army:retrospective` | Mission 結束後回顧學習 |
 | `dev-standards` | 開發標準（自動載入） |
 
 ## 系統架構概覽
@@ -157,6 +158,9 @@ graph TB
 - **完整報告** — Code Review、測試、安全審計全部文件化保留
 - **Plan 追蹤** — 每個計畫的審核、拒絕、執行狀態皆可追溯
 - **成本優化** — 文件類 Agent 用 Sonnet、推理類用 Opus
+- **自我改善** — Mission 結束後自動回顧學習，持續優化 Agent 配置
+- **對抗式審查** — Reviewer 和 Security Auditor 主動挑戰其他 Agent 的設計與實作
+- **Worktree 隔離** — 多個 Implementer 在獨立 Git worktree 中安全並行
 
 ## 文件
 

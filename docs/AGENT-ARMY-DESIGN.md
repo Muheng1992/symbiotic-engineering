@@ -1,6 +1,6 @@
 # Agent Army 系統設計文件
 
-> **版本**: 1.1.0 | **最後更新**: 2026-03-04
+> **版本**: 1.2.0 | **最後更新**: 2026-03-04
 > **目標**: 讓單人開發者透過 Claude Code CLI 指揮 AI Agent 大軍，實現從規劃到部署的全自動化軟體開發流程
 
 ---
@@ -106,6 +106,7 @@ graph TB
     subgraph "Quality Layer"
         QG[Quality Gate]
         HK[Hooks]
+        RT[Retrospective]
     end
 
     subgraph "Persistence Layer"
@@ -141,6 +142,7 @@ graph TB
     SA -->|findings| RP
     IN -->|report| RP
 
+    RP -->|"analyzed by"| RT
     RP -->|file| DM
     DC -->|write| DM
     DM -->|archive| RPT
@@ -300,8 +302,8 @@ graph LR
 | Architect | 架構師 | 系統設計、介面定義 | inherit | 單例 | project |
 | Implementer | 工程師 | 寫程式碼 | inherit | x1-5 | project |
 | Tester | QA 工程師 | 寫測試、跑測試 | inherit | x1-2 | project |
-| Reviewer | Senior Engineer | Code Review | inherit | x1-3 | project |
-| Security Auditor | 安全工程師 | 安全掃描 | inherit | 單例 | project |
+| Reviewer | Senior Engineer | Code Review + 對抗式審查 | inherit | x1-3 | project |
+| Security Auditor | 安全工程師 | 安全掃描 + 對抗式審查 | inherit | 單例 | project |
 | Integrator | DevOps | 合併、驗證 | inherit | 單例 | project |
 | Documenter | Technical Writer | 寫文件 | sonnet | 單例 | project |
 | Doc Manager | Librarian | 歸檔、索引 | sonnet | 單例 | project |
@@ -352,6 +354,7 @@ sequenceDiagram
 | `/context-sync` | 手動 (`/context-sync [action]`) | Main context | Context 管理 |
 | `/integration-test` | 手動 (`/integration-test [scope]`) | Main context | 整合測試編排 |
 | `/code-review` | 手動 (`/code-review [scope]`) | Main context | 程式碼審查編排 |
+| `/retrospective` | 手動 (`/retrospective`) | Main context | Mission 回顧學習 |
 | `dev-standards` | 自動（Claude 判斷載入） | Preloaded in agents | 開發標準 |
 
 ### 4.3 Skill 與 Agent 的關係
@@ -366,6 +369,7 @@ graph TD
         S5[dev-standards]
         S6[integration-test]
         S7[code-review]
+        S8[retrospective]
     end
 
     subgraph "Agents"
@@ -388,6 +392,9 @@ graph TD
     S3 -->|validates via| A7
     S6 -->|preloaded in| A4
     S7 -->|preloaded in| A5
+
+    S8 -->|"analyzes output of"| A10
+    S8 -->|"updates memory of"| A1
 
     S5 -->|preloaded in| A2
     S5 -->|preloaded in| A3
@@ -804,6 +811,8 @@ plugins/agent-army/                    # Plugin Root
 │   │   └── SKILL.md
 │   ├── code-review/                  # Code review orchestrator
 │   │   └── SKILL.md
+│   ├── retrospective/                 # Mission retrospective
+│   │   └── SKILL.md
 │   ├── dev-standards/                 # Coding standards (auto)
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -913,4 +922,4 @@ sequenceDiagram
 
 ---
 
-*Agent Army System v1.1.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army System v1.2.0 | Symbiotic Engineering | 2026-03-04*

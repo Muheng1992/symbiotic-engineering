@@ -96,6 +96,7 @@ This project includes a multi-agent development system in `.claude/`:
 | `/context-sync` | Context management | `/context-sync [action]` |
 | `/integration-test` | Integration test orchestration | `/integration-test [scope]` |
 | `/code-review` | Code review orchestration | `/code-review [scope]` |
+| `/retrospective` | Mission retrospective | `/retrospective` |
 | `dev-standards` | Coding standards (auto-loaded) | Automatic |
 
 ### Report Management

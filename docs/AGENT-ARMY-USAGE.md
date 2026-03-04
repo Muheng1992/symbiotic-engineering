@@ -1,6 +1,6 @@
 # Agent Army 使用指南
 
-> **版本**: 1.1.0 | **最後更新**: 2026-03-04
+> **版本**: 1.2.0 | **最後更新**: 2026-03-04
 > 從零開始設定和使用 Agent Army 系統的完整教學
 
 ---
@@ -385,6 +385,21 @@ Use the tester agent to write tests for the user module
    - Testability & Maintainability
 3. **Structured Report** — Severity 分級（CRITICAL / HIGH / MEDIUM / LOW）
 4. **Report Filing** — 歸檔到 `docs/reports/code-review/`
+
+---
+
+### `/retrospective` — Mission 回顧
+
+**用途**: 在 mission 結束後進行結構化回顧，分析成功/失敗模式，更新 agent memory
+
+**語法**: `/retrospective`
+
+**五階段流程**:
+1. **Data Collection** — 收集本次 mission 的報告、plan、git log
+2. **Analysis** — 五維度分析（效率、品質、架構、協調、計畫準確度）
+3. **Pattern Recognition** — 識別成功模式、失敗模式、摩擦點
+4. **Actionable Improvements** — 產生具體可行的改善建議
+5. **Memory Update** — 更新 agent memory，累積跨 session 知識
 
 ---
 
@@ -929,6 +944,7 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/agent-army:context-sync [action]` | Context 管理 | `/agent-army:context-sync init` |
 | `/agent-army:integration-test [scope]` | 整合測試編排 | `/agent-army:integration-test src/auth/` |
 | `/agent-army:code-review [scope]` | 程式碼審查編排 | `/agent-army:code-review staged` |
+| `/agent-army:retrospective` | Mission 回顧 | `/agent-army:retrospective` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ### 手動安裝版（無前綴）
@@ -941,8 +957,9 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/context-sync [action]` | Context 管理 | `/context-sync init` |
 | `/integration-test [scope]` | 整合測試編排 | `/integration-test src/auth/` |
 | `/code-review [scope]` | 程式碼審查編排 | `/code-review staged` |
+| `/retrospective` | Mission 回顧 | `/retrospective` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ---
 
-*Agent Army Usage Guide v1.1.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army Usage Guide v1.2.0 | Symbiotic Engineering | 2026-03-04*
