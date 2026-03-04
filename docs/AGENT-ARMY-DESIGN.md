@@ -79,6 +79,8 @@ graph TB
         S2["/sprint"]
         S3["/quality-gate"]
         S4["/context-sync"]
+        S5t["/tdd"]
+        S6f["/fix"]
     end
 
     subgraph "Orchestration Layer"
@@ -120,9 +122,13 @@ graph TB
     U -->|invoke| S2
     U -->|invoke| S3
     U -->|invoke| S4
+    U -->|invoke| S5t
+    U -->|invoke| S6f
 
     S1 --> TL
     S2 --> TL
+    S5t --> TE
+    S6f --> TL
 
     TL -->|spawn| AR
     TL -->|spawn| IM1
@@ -298,8 +304,8 @@ graph LR
 
 | 角色 | 類比（傳統團隊） | 核心職責 | Model | 可並行 | Memory |
 |------|------------------|----------|-------|--------|--------|
-| Tech Lead | 技術經理 | 任務分解、協調、決策 | inherit | 單例 | project |
-| Architect | 架構師 | 系統設計、介面定義 | inherit | 單例 | project |
+| Tech Lead | 技術經理 | 任務分解、協調、委派（不寫碼） | inherit | 單例 | project |
+| Architect | 架構師 | 系統設計、介面定義（plan mode） | inherit | 單例 | project |
 | Implementer | 工程師 | 寫程式碼 | inherit | x1-5 | project |
 | Tester | QA 工程師 | 寫測試、跑測試 | inherit | x1-2 | project |
 | Reviewer | Senior Engineer | Code Review + 對抗式審查 | inherit | x1-3 | project |
@@ -355,6 +361,8 @@ sequenceDiagram
 | `/integration-test` | 手動 (`/integration-test [scope]`) | Main context | 整合測試編排 |
 | `/code-review` | 手動 (`/code-review [scope]`) | Main context | 程式碼審查編排 |
 | `/retrospective` | 手動 (`/retrospective`) | Main context | Mission 回顧學習 |
+| `/tdd` | 手動 (`/tdd [feature]`) | Main context / Preloaded in tester | TDD Red-Green-Refactor 強制 |
+| `/fix` | 手動 (`/fix [error]`) | Main context | 智慧問題診斷與修復 |
 | `dev-standards` | 自動（Claude 判斷載入） | Preloaded in agents | 開發標準 |
 
 ### 4.3 Skill 與 Agent 的關係
@@ -370,6 +378,8 @@ graph TD
         S6[integration-test]
         S7[code-review]
         S8[retrospective]
+        S9[tdd]
+        S10[fix]
     end
 
     subgraph "Agents"
@@ -392,6 +402,8 @@ graph TD
     S3 -->|validates via| A7
     S6 -->|preloaded in| A4
     S7 -->|preloaded in| A5
+    S9 -->|preloaded in| A4
+    S10 -->|"triages via"| A1
 
     S8 -->|"analyzes output of"| A10
     S8 -->|"updates memory of"| A1
@@ -797,7 +809,7 @@ plugins/agent-army/                    # Plugin Root
 │   ├── integrator.md
 │   ├── doc-manager.md
 │   └── reporter.md
-├── skills/                            # 8 Skills
+├── skills/                            # 10 Skills
 │   ├── assemble/                      # Agent army orchestrator
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -812,6 +824,10 @@ plugins/agent-army/                    # Plugin Root
 │   ├── code-review/                  # Code review orchestrator
 │   │   └── SKILL.md
 │   ├── retrospective/                 # Mission retrospective
+│   │   └── SKILL.md
+│   ├── tdd/                           # TDD enforcement
+│   │   └── SKILL.md
+│   ├── fix/                           # Smart problem resolution
 │   │   └── SKILL.md
 │   ├── dev-standards/                 # Coding standards (auto)
 │   │   ├── SKILL.md

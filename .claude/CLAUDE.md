@@ -76,8 +76,8 @@ This project includes a multi-agent development system in `.claude/`:
 ### Available Agents (`.claude/agents/`)
 | Agent | Role | When to Use |
 |-------|------|-------------|
-| `tech-lead` | Orchestration | Complex multi-agent coordination |
-| `architect` | System Design | New features, architecture decisions |
+| `tech-lead` | Orchestration | Coordination & delegation (no direct coding) |
+| `architect` | System Design | Design & planning (plan mode, read-only) |
 | `implementer` | Coding | Writing and modifying code |
 | `tester` | Testing | Writing and running tests |
 | `reviewer` | Code Review | Post-implementation quality review |
@@ -97,6 +97,8 @@ This project includes a multi-agent development system in `.claude/`:
 | `/integration-test` | Integration test orchestration | `/integration-test [scope]` |
 | `/code-review` | Code review orchestration | `/code-review [scope]` |
 | `/retrospective` | Mission retrospective | `/retrospective` |
+| `/tdd` | TDD enforcement | `/tdd [feature description]` |
+| `/fix` | Smart problem resolution | `/fix [error or bug description]` |
 | `dev-standards` | Coding standards (auto-loaded) | Automatic |
 
 ### Report Management

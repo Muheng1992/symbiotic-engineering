@@ -30,3 +30,13 @@
   - Files: `.claude/skills/retrospective/SKILL.md` and `plugins/agent-army/skills/retrospective/SKILL.md`
   - 5-phase structured retrospective: Data Collection, Analysis, Pattern Recognition, Actionable Improvements, Memory Update
   - Reports filed to `docs/reports/retrospective/`
+- 2026-03-04: Added plan mode to `architect.md` (both locations)
+  - Frontmatter: added `permissionMode: plan`, removed `Write, Edit` from tools
+  - Added `## Plan Mode` section after `## Design Principles` and before `## Output Format`
+  - Includes: Design-Only Workflow (5 steps), Why Plan Mode (4 reasons)
+  - Agent can only read/analyze, not write/edit — enforces design-before-implementation
+- 2026-03-04: Created `/tdd` skill (both locations)
+  - Files: `.claude/skills/tdd/SKILL.md` and `plugins/agent-army/skills/tdd/SKILL.md`
+  - Red-Green-Refactor cycle enforcement with strict phase gates
+  - Includes: 3-phase process, gate checks, anti-pattern table, report format
+  - Updated `tester.md` (both locations) to add `- tdd` to skills list

@@ -1,7 +1,7 @@
 # Agent Army — Claude Code Plugin
 
 > AI-powered software development team for Claude Code CLI.
-> 10 specialized agents + 8 skills covering the full SDLC with Clean Architecture enforcement.
+> 10 specialized agents + 10 skills covering the full SDLC with Clean Architecture enforcement.
 
 ## Quick Install
 
@@ -54,8 +54,8 @@ Add to your project's `.claude/settings.json`:
 
 | Agent | Role | Model |
 |-------|------|-------|
-| `tech-lead` | Orchestration & coordination | opus |
-| `architect` | System design & API design | opus |
+| `tech-lead` | Orchestration & delegation (no Write/Edit) | opus |
+| `architect` | System design & API design (plan mode) | opus |
 | `implementer` | Code implementation | opus |
 | `tester` | Unit + integration testing | opus |
 | `reviewer` | Code review (read-only) | opus |
@@ -65,7 +65,7 @@ Add to your project's `.claude/settings.json`:
 | `doc-manager` | Document lifecycle management | sonnet |
 | `reporter` | Structured report generation | sonnet |
 
-### 8 Skills (Slash Commands)
+### 10 Skills (Slash Commands)
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
@@ -76,6 +76,8 @@ Add to your project's `.claude/settings.json`:
 | **Integration Test** | `/agent-army:integration-test [scope]` | Integration test orchestration (5-stage) |
 | **Code Review** | `/agent-army:code-review [scope]` | Code review orchestration (4-stage) |
 | **Setup** | `/agent-army:setup [project-name]` | Initialize project for Agent Army |
+| **TDD** | `/agent-army:tdd [feature]` | TDD Red-Green-Refactor enforcement |
+| **Fix** | `/agent-army:fix [error]` | Smart problem resolution & diagnosis |
 | **Dev Standards** | *(auto-loaded)* | Clean Architecture & coding standards |
 
 ### Hooks
@@ -123,13 +125,15 @@ graph LR
 ```
 Agent Army Plugin
 ├── agents/           10 specialized agent definitions
-├── skills/           8 skills (slash commands)
+├── skills/           10 skills (slash commands)
 │   ├── assemble/     Full army orchestrator
 │   ├── sprint/       Sprint planning
 │   ├── quality-gate/ Quality checkpoints
 │   ├── context-sync/ Context management
 │   ├── integration-test/ Integration test orchestration
 │   ├── code-review/  Code review orchestration
+│   ├── tdd/          TDD enforcement
+│   ├── fix/          Smart problem resolution
 │   ├── setup/        Project initialization
 │   └── dev-standards/ Coding standards (auto-loaded)
 └── hooks/            Clean Architecture enforcement
@@ -148,6 +152,9 @@ Agent Army Plugin
 - **Plan Traceability**: Every plan tracked with approval/rejection/execution status
 - **Cost Optimization**: Documentation agents use Sonnet; reasoning agents use Opus
 - **Context Management**: Agents receive only the context they need
+- **TDD Enforcement**: Red-Green-Refactor cycle as a blocking gate
+- **Smart Fix**: Automatic diagnosis and dynamic agent selection for bug fixes
+- **Role Isolation**: Tech Lead coordinates only; Architect designs only (plan mode)
 
 ## License
 

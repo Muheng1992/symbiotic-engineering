@@ -403,6 +403,40 @@ Use the tester agent to write tests for the user module
 
 ---
 
+### `/tdd` — TDD 強制執行
+
+**用途**: 強制 Red-Green-Refactor 循環，確保測試先行
+
+**語法**: `/tdd [feature or function description]`
+
+**三階段循環**:
+1. **RED** — 先寫一個失敗的測試（必須 fail 才能繼續）
+2. **GREEN** — 寫最少的程式碼讓測試通過（不多寫）
+3. **REFACTOR** — 重構程式碼，保持所有測試通過
+
+**Phase Gate**: 每個階段都有嚴格的 gate check，必須通過才能進入下一階段
+
+**Anti-Pattern 防護**: 防止先寫碼後補測試、一次寫多個測試、GREEN 階段過度實作等常見壞習慣
+
+---
+
+### `/fix` — 智慧問題修復
+
+**用途**: 診斷錯誤、分析根因、自動選擇適當 Agent 修復
+
+**語法**: `/fix [error message, bug description, or issue reference]`
+
+**五階段流程**:
+1. **Problem Intake** — 收集錯誤訊息、堆疊追蹤、重現步驟
+2. **Diagnosis** — 問題分類 + 5 Whys 根因分析
+3. **Resolution Strategy** — 選擇適當 Agent 組合（單 Agent / 多 Agent）
+4. **Fix Execution** — 先寫回歸測試，再修復，再全套測試
+5. **Report & Learn** — 產生修復報告，記錄預防措施
+
+**問題分類**: Build Error → `implementer` | Test Failure → `tester` | Security Issue → `security-auditor` → `implementer` | Architecture Violation → `architect` → `implementer`
+
+---
+
 ### `dev-standards` — 開發標準（自動載入）
 
 **用途**: Claude 自動載入的開發規範
@@ -463,8 +497,8 @@ graph TD
 
 | 角色 | 何時使用 | 輸出 |
 |------|---------|------|
-| **tech-lead** | 複雜任務需要多 agent 協調 | 任務分解 + 協調 |
-| **architect** | 新功能、重構、技術決策 | 設計文件 + 介面定義 |
+| **tech-lead** | 複雜任務需要多 agent 協調（不直接寫碼） | 任務分解 + 委派協調 |
+| **architect** | 新功能、重構、技術決策（plan mode，唯讀） | 設計文件 + 介面定義 |
 | **implementer** | 寫/改程式碼 | 程式碼檔案 |
 | **tester** | 實作後寫測試 | 測試檔案 + 測試報告 |
 | **reviewer** | 程式碼變更後審查 | Review 報告 |
@@ -945,6 +979,8 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/agent-army:integration-test [scope]` | 整合測試編排 | `/agent-army:integration-test src/auth/` |
 | `/agent-army:code-review [scope]` | 程式碼審查編排 | `/agent-army:code-review staged` |
 | `/agent-army:retrospective` | Mission 回顧 | `/agent-army:retrospective` |
+| `/agent-army:tdd [feature]` | TDD 強制執行 | `/agent-army:tdd add validation logic` |
+| `/agent-army:fix [error]` | 智慧問題修復 | `/agent-army:fix build fails with type error` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ### 手動安裝版（無前綴）
@@ -958,6 +994,8 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/integration-test [scope]` | 整合測試編排 | `/integration-test src/auth/` |
 | `/code-review [scope]` | 程式碼審查編排 | `/code-review staged` |
 | `/retrospective` | Mission 回顧 | `/retrospective` |
+| `/tdd [feature]` | TDD 強制執行 | `/tdd add validation logic` |
+| `/fix [error]` | 智慧問題修復 | `/fix build fails with type error` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ---

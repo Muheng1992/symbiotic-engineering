@@ -25,7 +25,7 @@
 /plugin install agent-army@symbiotic-engineering
 ```
 
-安裝後你會獲得 10 個 Agent 和 8 個 Skill（以 `/agent-army:` 命名空間前綴呼叫）。
+安裝後你會獲得 10 個 Agent 和 11 個 Skill（以 `/agent-army:` 命名空間前綴呼叫）。
 
 ### Step 3: 初始化專案
 
@@ -62,7 +62,7 @@ Setup 會自動完成以下工作：
 
 | Agent | 角色 |
 |-------|------|
-| `tech-lead` | 團隊指揮、任務分解、協調 |
+| `tech-lead` | 團隊指揮、協調與委派（不直接寫碼） |
 | `architect` | 系統設計、API 設計、資料建模 |
 | `implementer` | 程式碼實作（可多個並行） |
 | `tester` | 單元測試、整合測試、E2E 測試策略 |
@@ -73,7 +73,7 @@ Setup 會自動完成以下工作：
 | `doc-manager` | 文件歸檔、索引維護 |
 | `reporter` | 結構化報告產生 |
 
-### 9 個 Skill
+### 11 個 Skill
 
 | 指令 | 用途 |
 |------|------|
@@ -85,6 +85,8 @@ Setup 會自動完成以下工作：
 | `/agent-army:code-review [範圍]` | 程式碼審查編排（4 階段流程） |
 | `/agent-army:setup [專案名稱]` | 初始化專案設定 |
 | `/agent-army:retrospective` | Mission 結束後回顧學習 |
+| `/agent-army:tdd [功能描述]` | TDD Red-Green-Refactor 強制執行 |
+| `/agent-army:fix [錯誤描述]` | 智慧問題診斷與修復 |
 | `dev-standards` | 開發標準（自動載入） |
 
 ## 系統架構概覽
@@ -102,6 +104,8 @@ graph TB
         S4["/context-sync"]
         S5["/integration-test"]
         S6["/code-review"]
+        S7["/tdd"]
+        S8["/fix"]
     end
 
     subgraph "Agent 層"
@@ -120,7 +124,7 @@ graph TB
         RP["Reporter"]
     end
 
-    U --> S1 & S2 & S3 & S4 & S5 & S6
+    U --> S1 & S2 & S3 & S4 & S5 & S6 & S7 & S8
     S1 & S2 --> TL
     TL --> AR --> IM
     IM --> TE & RV & SA
@@ -136,6 +140,8 @@ graph TB
     style S4 fill:#49a,stroke:#27d,color:#fff
     style S5 fill:#49a,stroke:#27d,color:#fff
     style S6 fill:#49a,stroke:#27d,color:#fff
+    style S7 fill:#49a,stroke:#27d,color:#fff
+    style S8 fill:#49a,stroke:#27d,color:#fff
 ```
 
 ## 快速使用
@@ -161,6 +167,9 @@ graph TB
 - **自我改善** — Mission 結束後自動回顧學習，持續優化 Agent 配置
 - **對抗式審查** — Reviewer 和 Security Auditor 主動挑戰其他 Agent 的設計與實作
 - **Worktree 隔離** — 多個 Implementer 在獨立 Git worktree 中安全並行
+- **TDD 強制** — 測試先行，嚴格 Red-Green-Refactor 循環
+- **智慧修復** — 自動診斷問題、選擇適當 Agent 修復
+- **職責隔離** — Tech Lead 只協調不寫碼、Architect 只設計不實作
 
 ## 文件
 
