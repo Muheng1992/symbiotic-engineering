@@ -11,6 +11,7 @@
 |---|------|------|
 | 0 | `ai-era-code-best-practices.md` — AI 時代程式碼最佳實踐 | ✅ 已完成 |
 | 1 | `claude-code-skills-guide.md` — Claude Code Skills 完全指南 | ✅ 已完成 |
+| 3 | `context-engineering-memory-architecture.md` — Context Engineering 記憶架構 | ✅ 已完成 |
 
 ---
 
@@ -301,7 +302,7 @@
 | 0 | AI 時代程式碼最佳實踐 | — | ✅ 完成 | ~1000 行 |
 | 1 | Claude Code Skills 完全指南 | — | ✅ 完成 | ~1088 行 |
 | 2 | Agent Teams + Git Worktree | 極高 | ✅ 完成 | ~883 行 |
-| 3 | Context Engineering 記憶架構 | 極高 | ⬜ 待開始 | ~1000 行 |
+| 3 | Context Engineering 記憶架構 | 極高 | ✅ 完成 | ~1167 行 |
 | 4 | Plugins 生態系 | 高 | ⬜ 待開始 | ~900 行 |
 | 5 | Hooks 進階自動化 | 高 | ⬜ 待開始 | ~800 行 |
 | 6 | Agent Skills 開放標準 | 中 | ⬜ 待開始 | ~800 行 |
