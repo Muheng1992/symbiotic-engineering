@@ -297,21 +297,27 @@ src/
 
 ### 2.3 Token 效率 vs. 語意準確：核心取捨
 
+| 命名策略 | Token 消耗 | AI 語意準確度 | 所在象限 |
+|----------|-----------|-------------|---------|
+| `obfuscated` | 最低 | 0.802 (最低) | 避免區 |
+| `minimal` | 低 | 中低 | 過度壓縮區 |
+| `PascalCase` | 中 | 中 | 可接受區 |
+| `snake_case` | 中 | 0.65+ | 可接受區 |
+| `SCREAM_SNAKE` | 中高 | 0.72+ | 接近理想區 |
+| **`descriptive`** | **最高 (+41%)** | **0.874 (最高)** | **理想區** |
+
 ```mermaid
-quadrantChart
-    title 命名策略的 Token 成本 vs. AI 效能
-    x-axis "低 Token 消耗" --> "高 Token 消耗"
-    y-axis "低 AI 效能" --> "高 AI 效能"
-    quadrant-1 理想區域
-    quadrant-2 過度壓縮
-    quadrant-3 避免
-    quadrant-4 可接受的投資
-    obfuscated: [0.2, 0.19]
-    minimal: [0.3, 0.35]
-    PascalCase: [0.5, 0.55]
-    snake_case: [0.55, 0.65]
-    SCREAM_SNAKE: [0.6, 0.72]
-    descriptive: [0.75, 0.87]
+graph LR
+    subgraph "Token Cost vs AI Performance"
+        A["obfuscated<br/>Low cost, Low accuracy"] -.-> B["minimal"]
+        B -.-> C["PascalCase"]
+        C -.-> D["snake_case"]
+        D -.-> E["SCREAM_SNAKE"]
+        E -.-> F["descriptive<br/>+41% tokens, +8.9% accuracy"]
+    end
+
+    style A fill:#d44,stroke:#a22,color:#fff
+    style F fill:#2d5,stroke:#1a3,color:#fff
 ```
 
 **結論**：描述性命名消耗多 41% 的 token，但帶來 8.9% 的語意性能提升。**AI 模型優先考慮清晰度而非壓縮**。這意味著在命名上，不應犧牲清晰度來省 token。
@@ -560,9 +566,9 @@ flowchart TD
 
 ---
 
-## 五、型別系統：AI 時代的安全網
+## 五、型別系統與語言特性：AI 時代的安全網
 
-### 5.1 TypeScript 的歷史性崛起
+### 5.1 型別語言的歷史性崛起
 
 ```mermaid
 graph LR
@@ -572,6 +578,8 @@ graph LR
     style A fill:#28f,stroke:#17d,color:#fff
     style C fill:#2d5,stroke:#1a3,color:#fff
 ```
+
+這不僅僅是 TypeScript 的故事——**所有具備強型別系統的語言**都在 AI 時代獲得優勢。
 
 ### 5.2 為什麼型別在 AI 時代更重要
 
@@ -590,19 +598,49 @@ graph TD
     style D fill:#f90,stroke:#c60,color:#fff
 ```
 
-### 5.3 範例對比
+### 5.3 各語言的型別系統與 AI 協作特性
 
-#### 無型別（JavaScript）
+```mermaid
+graph TB
+    subgraph "靜態型別 — AI 友好度高"
+        TS["TypeScript<br/>Web 前後端"]
+        KT["Kotlin<br/>Android / Server"]
+        SW["Swift<br/>iOS / macOS"]
+        GO["Go<br/>後端 / 雲端"]
+        RS["Rust<br/>系統 / 高效能"]
+    end
 
-```javascript
-// AI 生成時可能搞混參數順序或型別
-function processOrder(items, userId, discount) {
-    // items 是陣列？物件？userId 是字串？數字？
-    // discount 是百分比？絕對值？
-}
+    subgraph "動態型別 + Type Hints"
+        PY["Python + type hints<br/>AI/ML / 腳本"]
+    end
+
+    subgraph "動態型別 — AI 容易出錯"
+        JS["JavaScript (無 TS)"]
+        RB["Ruby"]
+    end
+
+    style TS fill:#2d5,stroke:#1a3,color:#fff
+    style KT fill:#2d5,stroke:#1a3,color:#fff
+    style SW fill:#2d5,stroke:#1a3,color:#fff
+    style GO fill:#2d5,stroke:#1a3,color:#fff
+    style RS fill:#2d5,stroke:#1a3,color:#fff
+    style PY fill:#f90,stroke:#c60,color:#fff
+    style JS fill:#d44,stroke:#a22,color:#fff
+    style RB fill:#d44,stroke:#a22,color:#fff
 ```
 
-#### 有型別（TypeScript）
+| 語言 | 型別系統 | AI 友好特性 | AI 常見問題 |
+|------|---------|------------|-----------|
+| **TypeScript** | 靜態（結構型別） | 介面推斷、union types、generic | AI 可能過度使用 `any` |
+| **Kotlin** | 靜態（null safety） | Null safety 內建、data class、sealed class | AI 可能忽略 coroutine scope |
+| **Swift** | 靜態（protocol-oriented） | Optional 型別、protocol extension、value types | AI 可能混淆 struct/class 語意 |
+| **Go** | 靜態（簡潔） | 介面隱式實現、error 作為值、goroutine | AI 可能忽略 error handling |
+| **Rust** | 靜態（ownership） | 編譯器即安全網、Result/Option types | AI 生成的 lifetime 常不正確 |
+| **Python** | 動態 + type hints | mypy/pyright 靜態檢查、dataclass | AI 常省略 type hints |
+
+### 5.4 多語言範例對比
+
+#### TypeScript（Web 前後端）
 
 ```typescript
 interface OrderItem {
@@ -611,20 +649,137 @@ interface OrderItem {
     unitPrice: number;
 }
 
-/**
- * Process order with membership discount.
- * @throws {InsufficientStockError} if any item is out of stock
- */
+/** Process order with membership discount.
+ *  @throws {InsufficientStockError} if any item is out of stock */
 function processOrder(
     items: OrderItem[],
     userId: string,
     discountPercent: number  // 0-100, e.g. 20 means 20% off
 ): Promise<OrderResult> {
-    // 型別系統確保 AI 不會傳錯參數
+    // 型別確保 AI 不會傳錯參數
 }
 ```
 
-> 型別約束解碼（[arXiv 2504.09246](https://arxiv.org/abs/2504.09246)）的研究顯示：利用型別系統引導 AI 程式碼生成，編譯錯誤減少**超過一半**。
+#### Kotlin（Android / Server-side）
+
+```kotlin
+data class OrderItem(
+    val productId: String,
+    val quantity: Int,
+    val unitPrice: Double
+)
+
+/**
+ * Process order with membership discount.
+ * @throws InsufficientStockException if any item is out of stock
+ */
+suspend fun processOrder(
+    items: List<OrderItem>,
+    userId: String,
+    discountPercent: Int  // 0-100
+): OrderResult {
+    // Kotlin 的 null safety 防止 AI 生成 NPE
+    // suspend 標記提醒 AI 這是 coroutine context
+}
+```
+
+#### Swift（iOS / macOS）
+
+```swift
+struct OrderItem {
+    let productId: String
+    let quantity: Int
+    let unitPrice: Double
+}
+
+/// Process order with membership discount.
+/// - Throws: `InsufficientStockError` if any item is out of stock.
+func processOrder(
+    items: [OrderItem],
+    userId: String,
+    discountPercent: Int  // 0-100
+) async throws -> OrderResult {
+    // Swift 的 Optional 和 async/throws 讓 AI 必須處理所有錯誤路徑
+}
+```
+
+#### Go（後端 / 雲端服務）
+
+```go
+type OrderItem struct {
+    ProductID string  `json:"product_id"`
+    Quantity  int     `json:"quantity"`
+    UnitPrice float64 `json:"unit_price"`
+}
+
+// ProcessOrder applies membership discount to an order.
+// Returns ErrInsufficientStock if any item is out of stock.
+func ProcessOrder(
+    items []OrderItem,
+    userID string,
+    discountPercent int, // 0-100
+) (*OrderResult, error) {
+    // Go 的 error-as-value 迫使 AI 顯式處理每個錯誤
+    // 簡潔語法 + 強型別 = AI 友好
+}
+```
+
+#### Python（with type hints）
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class OrderItem:
+    product_id: str
+    quantity: int
+    unit_price: float
+
+async def process_order(
+    items: list[OrderItem],
+    user_id: str,
+    discount_percent: int,  # 0-100
+) -> OrderResult:
+    """Process order with membership discount.
+
+    Raises:
+        InsufficientStockError: if any item is out of stock.
+    """
+    # type hints + docstring 讓 AI 理解預期行為
+    # 搭配 mypy --strict 確保 AI 生成的程式碼符合型別約束
+```
+
+### 5.5 各語言的 AI 輔助開發建議
+
+| 語言 | 關鍵建議 | Armin Ronacher 觀點 |
+|------|---------|-------------------|
+| **TypeScript** | 開啟 `strict` 模式；避免 `any`；用 `zod` 做 runtime validation | — |
+| **Kotlin** | 用 `sealed class` 限制 AI 生成的狀態；搭配 `ktlint` | — |
+| **Swift** | 用 `protocol` 定義契約；`@MainActor` 確保線程安全 | — |
+| **Go** | 「後端 agentic 工作的最佳選擇」；簡單、無 magic、可預測 | Go 是 AI 友好的首選後端語言 |
+| **Python** | 必須用 `mypy --strict`；「避免 Python 因為其 magic」 | 因 magic 方法和動態特性而不推薦用於 agentic coding |
+| **Rust** | 編譯器是最強的 AI 安全網；但 lifetime 對 AI 仍具挑戰 | — |
+
+> Armin Ronacher（Flask/Ruff 創建者）明確指出：「Go 是後端代理工作的最佳選擇；避免 Python 因為其 magic。」代理寫出的 SQL 很好，且能匹配 SQL 日誌——選擇純 SQL 而非複雜 ORM。
+> — [Agentic Coding Recommendations](https://lucumr.pocoo.org/2025/6/12/agentic-coding/)
+
+### 5.6 Token 效率：各語言比較
+
+研究橫跨 1,000+ RosettaCode 任務的 GPT-4 tokenizer 分析：
+
+| 語言 | 平均 Token/任務 | 相對效率 | 型別系統 |
+|------|---------------|---------|---------|
+| Python | ~130 | 基準 | 動態 + hints |
+| Go | ~145 | -12% | 靜態（簡潔） |
+| JavaScript | ~148 | -14% | 動態 |
+| Kotlin | ~155 | -19% | 靜態（表達力強） |
+| Swift | ~160 | -23% | 靜態（表達力強） |
+| TypeScript | ~165 | -27% | 靜態（結構型別） |
+| Java | ~182 | -40% | 靜態（冗長） |
+
+> **關鍵取捨**：Python 和 Go 最省 token，但 TypeScript/Kotlin/Swift 的型別安全帶來的錯誤預防價值遠超額外 token 成本。型別約束解碼（[arXiv 2504.09246](https://arxiv.org/abs/2504.09246)）的研究顯示：利用型別系統引導 AI 程式碼生成，編譯錯誤減少**超過一半**。
+>
+> — [Programming Languages Ranked by Token Efficiency](https://ubos.tech/news/programming-languages-ranked-by-token-efficiency-for-ai%E2%80%91assisted-development/)
 
 ---
 
