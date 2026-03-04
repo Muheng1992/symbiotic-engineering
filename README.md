@@ -86,6 +86,57 @@ Setup 會自動完成以下工作：
 | `/agent-army:setup [專案名稱]` | 初始化專案設定 |
 | `dev-standards` | 開發標準（自動載入） |
 
+## 系統架構概覽
+
+```mermaid
+graph TB
+    subgraph "開發者"
+        U["Developer"]
+    end
+
+    subgraph "指令層"
+        S1["/assemble"]
+        S2["/sprint"]
+        S3["/quality-gate"]
+        S4["/context-sync"]
+        S5["/integration-test"]
+        S6["/code-review"]
+    end
+
+    subgraph "Agent 層"
+        TL["Tech Lead<br/>指揮"]
+        AR["Architect<br/>設計"]
+        IM["Implementer<br/>實作 x N"]
+        TE["Tester<br/>測試"]
+        RV["Reviewer<br/>審查"]
+        SA["Security<br/>安全"]
+        IN["Integrator<br/>整合"]
+    end
+
+    subgraph "文件層"
+        DC["Documenter"]
+        DM["Doc Manager"]
+        RP["Reporter"]
+    end
+
+    U --> S1 & S2 & S3 & S4 & S5 & S6
+    S1 & S2 --> TL
+    TL --> AR --> IM
+    IM --> TE & RV & SA
+    TE & RV & SA --> IN
+    IN --> DC & RP
+    RP --> DM
+
+    style U fill:#fff,stroke:#333
+    style TL fill:#e74,stroke:#c52,color:#fff
+    style S1 fill:#49a,stroke:#27d,color:#fff
+    style S2 fill:#49a,stroke:#27d,color:#fff
+    style S3 fill:#49a,stroke:#27d,color:#fff
+    style S4 fill:#49a,stroke:#27d,color:#fff
+    style S5 fill:#49a,stroke:#27d,color:#fff
+    style S6 fill:#49a,stroke:#27d,color:#fff
+```
+
 ## 快速使用
 
 ```

@@ -1,7 +1,7 @@
 # Agent Army — Claude Code Plugin
 
 > AI-powered software development team for Claude Code CLI.
-> 10 specialized agents + 6 skills covering the full SDLC with Clean Architecture enforcement.
+> 10 specialized agents + 8 skills covering the full SDLC with Clean Architecture enforcement.
 
 ## Quick Install
 
@@ -65,7 +65,7 @@ Add to your project's `.claude/settings.json`:
 | `doc-manager` | Document lifecycle management | sonnet |
 | `reporter` | Structured report generation | sonnet |
 
-### 6 Skills (Slash Commands)
+### 8 Skills (Slash Commands)
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
@@ -73,6 +73,8 @@ Add to your project's `.claude/settings.json`:
 | **Sprint** | `/agent-army:sprint [feature]` | Sprint planning & task decomposition |
 | **Quality Gate** | `/agent-army:quality-gate [scope]` | Quality checkpoint (6 gates) |
 | **Context Sync** | `/agent-army:context-sync [action]` | Context management across agents |
+| **Integration Test** | `/agent-army:integration-test [scope]` | Integration test orchestration (5-stage) |
+| **Code Review** | `/agent-army:code-review [scope]` | Code review orchestration (4-stage) |
 | **Setup** | `/agent-army:setup [project-name]` | Initialize project for Agent Army |
 | **Dev Standards** | *(auto-loaded)* | Clean Architecture & coding standards |
 
@@ -84,6 +86,20 @@ Add to your project's `.claude/settings.json`:
 | `Stop` | Before session end | Check if reports are filed |
 
 ## Workflow Example
+
+```mermaid
+graph LR
+    A["/agent-army:setup"] --> B["/agent-army:context-sync init"]
+    B --> C["/agent-army:sprint"]
+    C --> D["/agent-army:assemble"]
+    D --> E["/agent-army:quality-gate"]
+
+    style A fill:#a49,stroke:#d27,color:#fff
+    style B fill:#49a,stroke:#27d,color:#fff
+    style C fill:#e96,stroke:#c74,color:#fff
+    style D fill:#e74,stroke:#c52,color:#fff
+    style E fill:#4a9,stroke:#2d7,color:#fff
+```
 
 ```
 # 1. Setup (first time only)
@@ -107,11 +123,13 @@ Add to your project's `.claude/settings.json`:
 ```
 Agent Army Plugin
 ├── agents/           10 specialized agent definitions
-├── skills/           6 skills (slash commands)
+├── skills/           8 skills (slash commands)
 │   ├── assemble/     Full army orchestrator
 │   ├── sprint/       Sprint planning
 │   ├── quality-gate/ Quality checkpoints
 │   ├── context-sync/ Context management
+│   ├── integration-test/ Integration test orchestration
+│   ├── code-review/  Code review orchestration
 │   ├── setup/        Project initialization
 │   └── dev-standards/ Coding standards (auto-loaded)
 └── hooks/            Clean Architecture enforcement

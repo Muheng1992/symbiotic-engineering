@@ -407,18 +407,41 @@ Use the tester agent to write tests for the user module
 
 ### 決策流程圖
 
-```
-需要什麼？
-├── 設計/架構 → architect
-├── 寫程式碼 → implementer (可多個)
-├── 寫/跑測試 → tester
-├── 審查程式碼 → reviewer
-├── 安全分析 → security-auditor
-├── 合併整合 → integrator
-├── 寫文件 → documenter
-├── 產生報告 → reporter
-├── 管理文件 → doc-manager
-└── 複雜協調 → tech-lead
+```mermaid
+graph TD
+    Q["需要什麼？"] --> A["設計 / 架構"]
+    Q --> B["寫程式碼"]
+    Q --> C["寫 / 跑測試"]
+    Q --> D["審查程式碼"]
+    Q --> E["安全分析"]
+    Q --> F["合併整合"]
+    Q --> G["寫文件"]
+    Q --> H["產生報告"]
+    Q --> I["管理文件"]
+    Q --> J["複雜協調"]
+
+    A --> A1[architect]
+    B --> B1["implementer（可多個）"]
+    C --> C1[tester]
+    D --> D1[reviewer]
+    E --> E1[security-auditor]
+    F --> F1[integrator]
+    G --> G1[documenter]
+    H --> H1[reporter]
+    I --> I1[doc-manager]
+    J --> J1[tech-lead]
+
+    style Q fill:#e74,stroke:#c52,color:#fff
+    style A1 fill:#e96,stroke:#c74,color:#fff
+    style B1 fill:#4a9,stroke:#2d7,color:#fff
+    style C1 fill:#49a,stroke:#27d,color:#fff
+    style D1 fill:#49a,stroke:#27d,color:#fff
+    style E1 fill:#a49,stroke:#d27,color:#fff
+    style F1 fill:#4aa,stroke:#2dd,color:#fff
+    style G1 fill:#9a4,stroke:#7d2,color:#fff
+    style H1 fill:#9a4,stroke:#7d2,color:#fff
+    style I1 fill:#9a4,stroke:#7d2,color:#fff
+    style J1 fill:#e74,stroke:#c52,color:#fff
 ```
 
 ### 角色快速參考
@@ -573,16 +596,22 @@ docs/reports/
 
 ### 10.2 Plan 審核流程
 
-```
-Agent proposes plan
-       ↓
-Tech Lead reviews
-       ↓
-    ┌── APPROVED → Execute → Track completion → File report
-    └── REJECTED → Document reason → Revise → Re-submit
-                         ↓
-              Rejection recorded in plan file
-              with agent name and reason
+```mermaid
+graph TD
+    A[Agent proposes plan] --> B[Tech Lead reviews]
+    B --> C{Decision}
+    C -->|APPROVED| D[Execute plan]
+    C -->|REJECTED| E[Document rejection reason]
+    D --> F[Track completion]
+    F --> G[File report]
+    E --> H[Agent revises plan]
+    H --> A
+
+    style A fill:#49a,stroke:#27d,color:#fff
+    style B fill:#e74,stroke:#c52,color:#fff
+    style D fill:#4a9,stroke:#2d7,color:#fff
+    style E fill:#e96,stroke:#c74,color:#fff
+    style G fill:#9a4,stroke:#7d2,color:#fff
 ```
 
 ### 10.3 查看 Plan 歷史
@@ -916,4 +945,4 @@ chmod +x .claude/hooks/scripts/*.sh
 
 ---
 
-*Agent Army Usage Guide v1.2.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army Usage Guide v1.1.0 | Symbiotic Engineering | 2026-03-04*
