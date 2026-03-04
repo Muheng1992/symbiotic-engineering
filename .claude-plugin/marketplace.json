@@ -4,15 +4,15 @@
     "name": "Symbiotic Engineering"
   },
   "metadata": {
-    "description": "AI Agent Army — multi-agent development framework for Claude Code. 10 specialized agents + 8 skills covering the full software development lifecycle with Clean Architecture enforcement.",
-    "version": "1.1.0"
+    "description": "AI Agent Army — multi-agent development framework for Claude Code. 10 specialized agents + 10 skills covering the full software development lifecycle with Clean Architecture enforcement.",
+    "version": "1.2.0"
   },
   "plugins": [
     {
       "name": "agent-army",
       "source": "./plugins/agent-army",
-      "description": "AI-powered software development team — 10 specialized agents (tech-lead, architect, implementer, tester, reviewer, documenter, security-auditor, integrator, doc-manager, reporter) + 8 skills (assemble, sprint, quality-gate, context-sync, integration-test, code-review, dev-standards, setup) for full SDLC coverage with Clean Architecture enforcement.",
-      "version": "1.1.0",
+      "description": "AI-powered software development team — 10 specialized agents (tech-lead, architect, implementer, tester, reviewer, documenter, security-auditor, integrator, doc-manager, reporter) + 10 skills (assemble, sprint, quality-gate, context-sync, integration-test, code-review, retrospective, tdd, fix, setup) for full SDLC coverage with Clean Architecture enforcement.",
+      "version": "1.2.0",
       "author": {
         "name": "Symbiotic Engineering"
       },

@@ -1,7 +1,7 @@
 {
   "name": "agent-army",
-  "version": "1.1.0",
-  "description": "AI-powered software development team (Agent Army) — 10 specialized agents + 8 skills for full SDLC coverage with Clean Architecture enforcement",
+  "version": "1.2.0",
+  "description": "AI-powered software development team (Agent Army) — 10 specialized agents + 10 skills for full SDLC coverage with Clean Architecture enforcement",
   "author": {
     "name": "Symbiotic Engineering",
     "url": "https://github.com/Muheng1992/symbiotic-engineering"
