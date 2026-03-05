@@ -3,7 +3,7 @@
 > Mac Mini 當伺服器 + MacBook 當客戶端 — 打造個人開發雲 (2026)
 
 **最後更新**: 2026-03-05
-**前置閱讀**: [iPhone 遠端開發完全指南](./IPHONE-REMOTE-DEV-GUIDE.md)
+**前置閱讀**: [iPhone 遠端開發完全指南](./iphone-remote-dev-guide.md)
 **返回索引**: [文件索引](../INDEX.md)
 
 ---

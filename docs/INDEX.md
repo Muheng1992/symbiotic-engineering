@@ -11,8 +11,8 @@ Agent Army 系統的安裝、設計與使用說明。
 
 | Document | Description |
 |----------|-------------|
-| [Agent Army Design](plugin/AGENT-ARMY-DESIGN.md) | 系統架構設計、Mermaid 圖、角色定義 |
-| [Agent Army Usage Guide](plugin/AGENT-ARMY-USAGE.md) | 安裝、設定、使用教學 |
+| [Agent Army Design](plugin/agent-army-design.md) | 系統架構設計、Mermaid 圖、角色定義 |
+| [Agent Army Usage Guide](plugin/agent-army-usage.md) | 安裝、設定、使用教學 |
 | [Plugin README](../plugins/agent-army/README.md) | Plugin 安裝指南（GitHub 分發） |
 
 ---
@@ -35,8 +35,8 @@ Agent Army 系統的安裝、設計與使用說明。
 
 | Document | 主題 |
 |----------|------|
-| [iPhone 遠端開發完全指南](guides/IPHONE-REMOTE-DEV-GUIDE.md) | Claude Code Remote Control + SSH + VNC，用手機寫 Code |
-| [雙 Mac 遠端開發完全指南](guides/DUAL-MAC-DEV-GUIDE.md) | Mac Mini 伺服器 + MacBook 客戶端，個人開發雲 |
+| [iPhone 遠端開發完全指南](guides/iphone-remote-dev-guide.md) | Claude Code Remote Control + SSH + VNC，用手機寫 Code |
+| [雙 Mac 遠端開發完全指南](guides/dual-mac-dev-guide.md) | Mac Mini 伺服器 + MacBook 客戶端，個人開發雲 |
 
 ---
 

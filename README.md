@@ -151,12 +151,12 @@ graph TB
 ## 文件
 
 ### Plugin 文件
-- [系統設計文件](docs/plugin/AGENT-ARMY-DESIGN.md) — 架構設計與 Mermaid 圖
-- [使用指南](docs/plugin/AGENT-ARMY-USAGE.md) — 完整教學
+- [系統設計文件](docs/plugin/agent-army-design.md) — 架構設計與 Mermaid 圖
+- [使用指南](docs/plugin/agent-army-usage.md) — 完整教學
 
 ### 研究與知識庫
-- [iPhone 遠端開發指南](docs/guides/IPHONE-REMOTE-DEV-GUIDE.md) — Claude Code Remote Control + SSH + VNC
-- [雙 Mac 遠端開發指南](docs/guides/DUAL-MAC-DEV-GUIDE.md) — Mac Mini 伺服器 + MacBook 客戶端
+- [iPhone 遠端開發指南](docs/guides/iphone-remote-dev-guide.md) — Claude Code Remote Control + SSH + VNC
+- [雙 Mac 遠端開發指南](docs/guides/dual-mac-dev-guide.md) — Mac Mini 伺服器 + MacBook 客戶端
 - [更多研究文章](docs/guides/) — Claude Code 功能系列研究（7 篇）
 
 ## License

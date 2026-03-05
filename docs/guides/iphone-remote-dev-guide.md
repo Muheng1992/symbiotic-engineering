@@ -3,7 +3,7 @@
 > 用手機寫 Code — Claude Code Remote Control + SSH + 遠端桌面全攻略 (2026)
 
 **最後更新**: 2026-03-05
-**延伸閱讀**: [雙 Mac 遠端開發完全指南](./DUAL-MAC-DEV-GUIDE.md) — 用 Mac Mini 當伺服器 + MacBook 當客戶端
+**延伸閱讀**: [雙 Mac 遠端開發完全指南](./dual-mac-dev-guide.md) — 用 Mac Mini 當伺服器 + MacBook 當客戶端
 **返回索引**: [文件索引](../INDEX.md)
 
 ---

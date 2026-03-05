@@ -47,7 +47,8 @@ src/
 - Max nesting: 3 levels
 
 ### Naming
-- Files: `kebab-case.ts`
+- Source files: `kebab-case.ts`
+- Documentation: `lower-case-kebab.md` (exception: `README.md`, `INDEX.md`, `CLAUDE.md`)
 - Types/Classes: `PascalCase`
 - Functions: `camelCase` (verb+noun: `createUser`)
 - Constants: `UPPER_SNAKE_CASE`
