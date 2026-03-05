@@ -1,71 +1,67 @@
 # Documentation Index
 
-> **Last updated**: 2026-03-04
-> **Total documents**: 6 | Active: 5 | Archived: 1
+> **Last updated**: 2026-03-05
+> **Total documents**: 15 | Active: 14 | Archived: 1
 
 ---
 
-## System Documentation
+## Plugin 文件 (`docs/plugin/`)
 
-| Document | Last Updated | Status | Description |
-|----------|-------------|--------|-------------|
-| [Agent Army Design](AGENT-ARMY-DESIGN.md) | 2026-03-04 | Active | Complete system architecture and design |
-| [Agent Army Usage Guide](AGENT-ARMY-USAGE.md) | 2026-03-04 | Active | How to install, configure, and use the system |
-| [Agent Army Plugin README](../plugins/agent-army/README.md) | 2026-03-04 | Active | Plugin installation guide for GitHub distribution |
+Agent Army 系統的安裝、設計與使用說明。
 
-## Architecture Decision Records
-
-| Document | Last Updated | Status |
-|----------|-------------|--------|
-| (none yet) | — | — |
-
-## Reports
-
-### Plans
-| Date | Subject | Status | Author | Link |
-|------|---------|--------|--------|------|
-| (none yet) | — | — | — | — |
-
-### Code Reviews
-| Date | Feature | Verdict | Link |
-|------|---------|---------|------|
-| (none yet) | — | — | — |
-
-### Test Reports
-| Date | Feature | Pass Rate | Coverage | Link |
-|------|---------|-----------|----------|------|
-| (none yet) | — | — | — | — |
-
-### Security Audits
-| Date | Scope | Result | Link |
-|------|-------|--------|------|
-| (none yet) | — | — | — |
-
-### Fix Reports
-| Date | Issue | Root Cause | Link |
-|------|-------|-----------|------|
-| (none yet) | — | — | — |
-
-### Integration Reports
-| Date | Feature | Status | Link |
-|------|---------|--------|------|
-| (none yet) | — | — | — |
-
-### Quality Gate Reports
-| Date | Scope | Result | Link |
-|------|-------|--------|------|
-| (none yet) | — | — | — |
-
-## Guides
-| Document | Last Updated | Status |
-|----------|-------------|--------|
-| (none yet) | — | — |
-
-## Archived
-| Document | Archived Date | Reason | Link |
-|----------|--------------|--------|------|
-| RESEARCH-PLAN.md | 2026-03-04 | All 7 research articles completed | [View](archive/2026-03/RESEARCH-PLAN.archived.md) |
+| Document | Description |
+|----------|-------------|
+| [Agent Army Design](plugin/AGENT-ARMY-DESIGN.md) | 系統架構設計、Mermaid 圖、角色定義 |
+| [Agent Army Usage Guide](plugin/AGENT-ARMY-USAGE.md) | 安裝、設定、使用教學 |
+| [Plugin README](../plugins/agent-army/README.md) | Plugin 安裝指南（GitHub 分發） |
 
 ---
 
-*This index is maintained by the `doc-manager` agent. Update after filing any new report.*
+## 研究與知識庫 (`docs/guides/`)
+
+### Claude Code 功能研究系列（7 篇）
+
+| # | Document | 主題 |
+|---|----------|------|
+| 1 | [AI 時代的程式碼最佳實踐](guides/ai-era-code-best-practices.md) | Clean Code → Symbiotic Code |
+| 2 | [Claude Code Skills 完全指南](guides/claude-code-skills-guide.md) | Skills 概念到實戰 |
+| 3 | [Agent Teams + Git Worktree](guides/agent-teams-parallel-development.md) | 多代理平行開發實戰 |
+| 4 | [Context Engineering 記憶架構](guides/context-engineering-memory-architecture.md) | AI 輔助開發的記憶系統 |
+| 5 | [Hooks 進階自動化](guides/hooks-advanced-automation.md) | 事件驅動的 AI 工作流 |
+| 6 | [Plugins 生態系指南](guides/plugins-ecosystem-guide.md) | Plugin 開發到分發 |
+| 7 | [Agent Skills 開放標準](guides/agent-skills-open-standard.md) | 跨工具 AI 指令統一格式 |
+
+### 遠端開發指南
+
+| Document | 主題 |
+|----------|------|
+| [iPhone 遠端開發完全指南](guides/IPHONE-REMOTE-DEV-GUIDE.md) | Claude Code Remote Control + SSH + VNC，用手機寫 Code |
+| [雙 Mac 遠端開發完全指南](guides/DUAL-MAC-DEV-GUIDE.md) | Mac Mini 伺服器 + MacBook 客戶端，個人開發雲 |
+
+---
+
+## Reports (`docs/reports/`)
+
+開發過程中產生的報告，永不刪除。
+
+| Category | Path | Description |
+|----------|------|-------------|
+| Plans | `reports/plans/` | 開發計畫 |
+| Code Reviews | `reports/code-review/` | 程式碼審查 |
+| Test Reports | `reports/test/` | 測試結果 |
+| Security Audits | `reports/security/` | 安全審計 |
+| Fix Reports | `reports/fix/` | 問題修復 |
+| Integration Reports | `reports/integration/` | 整合測試 |
+| Quality Gate Reports | `reports/quality-gate/` | 品質閘門 |
+
+---
+
+## Archived (`docs/archive/`)
+
+| Document | Archived Date | Reason |
+|----------|--------------|--------|
+| [RESEARCH-PLAN.md](archive/2026-03/RESEARCH-PLAN.archived.md) | 2026-03-04 | 7 篇研究文章全部完成 |
+
+---
+
+*This index is maintained by the `documenter` agent. Update after filing any new document.*
