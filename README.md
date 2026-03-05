@@ -25,7 +25,7 @@
 /plugin install agent-army@symbiotic-engineering
 ```
 
-安裝後你會獲得 5 個 Agent 和 11 個 Skill（以 `/agent-army:` 命名空間前綴呼叫）。
+安裝後你會獲得 5 個 Agent 和 14 個 Skill（以 `/agent-army:` 命名空間前綴呼叫）。
 
 ### Step 3: 初始化專案
 
@@ -68,7 +68,7 @@ Setup 會自動完成以下工作：
 | `tester` | 測試 + Code Review + 安全審計 |
 | `documenter` | 文件撰寫 + 報告產生 + 歸檔管理 |
 
-### 11 個 Skill
+### 14 個 Skill
 
 | 指令 | 用途 |
 |------|------|
@@ -82,7 +82,22 @@ Setup 會自動完成以下工作：
 | `/agent-army:fix [錯誤描述]` | 智慧問題診斷與修復 |
 | `/agent-army:timesheet [時間範圍]` | 工時分析與日報 |
 | `/agent-army:retrospective` | Mission 結束後回顧學習 |
+| `/agent-army:context-sync [模式]` | 跨 Session Context 同步（save/load/team） |
+| `/agent-army:onboard [專案名稱]` | 專案上手分析與 Memory 初始化 |
+| `/agent-army:changelog [版本規格]` | 自動變更日誌產生 |
 | `dev-standards` | 開發標準（自動載入） |
+
+### 5 類專案範本
+
+`/agent-army:setup` 會自動安裝以下範本：
+
+| 類別 | 內容 | 說明 |
+|------|------|------|
+| **Memory** | `MEMORY.md` + 4 個 topic files | 結構化 AI 記憶架構，跨 session 累積知識 |
+| **Git Hooks** | `pre-commit`, `commit-msg`, `pre-push` | 自動檢查檔案長度、secrets、commit 格式 |
+| **CI/CD** | `quality-gate.yml` | GitHub Actions 品質閘門（6 道檢查） |
+| **Keybindings** | `keybindings.json` | Agent Army 常用指令快捷鍵 |
+| **Workspace** | `workspace.json` | 多專案協調設定 |
 
 ## 系統架構概覽
 
@@ -136,6 +151,17 @@ graph TB
 /agent-army:quality-gate all
 ```
 
+### Hooks 自動化
+
+安裝後會自動啟用以下 Hooks：
+
+| Hook 事件 | 觸發時機 | 行為 |
+|-----------|---------|------|
+| `PostToolUse(Write/Edit)` | 每次寫入/編輯程式碼後 | 提醒 Clean Architecture 合規 |
+| `PostToolUse(npm install/pip install/...)` | 安裝新依賴後 | 提醒檢查 License、CVE、Bundle size |
+| `PreToolUse(git push)` | Push 前 | 提醒先跑 `/quality-gate` |
+| `Stop` | Session 結束前 | 確認報告已歸檔到 `docs/reports/` |
+
 ## 核心特性
 
 - **精簡高效** — 5 個 Agent 基於業界最佳實踐（Anthropic 建議 3-5 個）
@@ -147,6 +173,9 @@ graph TB
 - **智慧修復** — 自動診斷問題、選擇適當 Agent 修復
 - **職責隔離** — Tech Lead 只協調不寫碼、Architect 只設計不實作
 - **Worktree 隔離** — 多個 Implementer 在獨立 Git worktree 中安全並行
+- **跨 Session 記憶** — Context Sync 保存/恢復工作狀態，確保開發連續性
+- **一鍵上手** — Onboard 掃描專案、產生結構化 Memory，新專案秒入狀態
+- **自動 CHANGELOG** — 從 git history + 報告自動產生 Keep a Changelog 格式
 
 ## 文件
 
@@ -158,6 +187,12 @@ graph TB
 - [iPhone 遠端開發指南](docs/guides/iphone-remote-dev-guide.md) — Claude Code Remote Control + SSH + VNC
 - [雙 Mac 遠端開發指南](docs/guides/dual-mac-dev-guide.md) — Mac Mini 伺服器 + MacBook 客戶端
 - [更多研究文章](docs/guides/) — Claude Code 功能系列研究（7 篇）
+
+## 版本
+
+**當前版本**: v3.0.0
+
+詳見 [CHANGELOG.md](CHANGELOG.md) 了解版本變更歷史。
 
 ## License
 

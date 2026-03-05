@@ -467,6 +467,95 @@ graph TD
     style S14 fill:#9a4,stroke:#7d2,color:#fff
 ```
 
+### 4.4 Templates 系統設計
+
+Templates 是 `/agent-army:setup` 在目標專案中產生的範本檔案，分為 5 類。
+
+#### 設計理念
+
+Templates 解決的核心問題：**新專案從零開始缺乏標準化的開發基礎設施**。每類 template 對應一個開發面向：
+
+```mermaid
+graph TD
+    SETUP["/agent-army:setup"] --> T1["Memory Templates<br/>AI 記憶基礎"]
+    SETUP --> T2["Git Hooks Templates<br/>品質守護"]
+    SETUP --> T3["CI/CD Templates<br/>自動化流程"]
+    SETUP --> T4["Keybindings Templates<br/>開發效率"]
+    SETUP --> T5["Workspace Templates<br/>多專案協調"]
+
+    T1 --> T1a["MEMORY.md — 主記憶（200 行上限）"]
+    T1 --> T1b["architecture.md — 架構決策"]
+    T1 --> T1c["debugging.md — 除錯筆記"]
+    T1 --> T1d["patterns.md — 程式碼模式"]
+    T1 --> T1e["conventions.md — 命名與風格"]
+
+    T2 --> T2a["pre-commit — 檔案長度 + secrets 檢查"]
+    T2 --> T2b["commit-msg — Conventional Commits 驗證"]
+    T2 --> T2c["pre-push — 推送前品質提醒"]
+
+    T3 --> T3a["quality-gate.yml — 6 道 CI 品質閘門"]
+
+    T4 --> T4a["keybindings.json — 7 組快捷鍵"]
+
+    T5 --> T5a["workspace.json — 專案清單與共享規範"]
+
+    style SETUP fill:#e74,stroke:#c52,color:#fff
+    style T1 fill:#e96,stroke:#c74,color:#fff
+    style T2 fill:#4a9,stroke:#2d7,color:#fff
+    style T3 fill:#49a,stroke:#27d,color:#fff
+    style T4 fill:#a49,stroke:#d27,color:#fff
+    style T5 fill:#9a4,stroke:#7d2,color:#fff
+```
+
+#### Templates 與系統的關係
+
+| Template 類別 | 關聯系統組件 | 關係說明 |
+|---------------|------------|----------|
+| **Memory** | Agent Memory（Layer 2） | Templates 產生初始 memory 檔案，agents 後續讀寫更新 |
+| **Git Hooks** | `.claude/settings.json` hooks | Git Hooks 在 git 層面執行，settings.json hooks 在 Claude Code 層面執行，互補 |
+| **CI/CD** | Quality Gate skill | CI 流程複製了 `/quality-gate` 的 6 道檢查到 GitHub Actions |
+| **Keybindings** | Skills | 將常用 skills 綁定到快捷鍵，加速觸發 |
+| **Workspace** | Context Sync skill | Workspace 定義專案清單，Context Sync 處理跨 session 狀態 |
+
+#### 使用時機
+
+- **Memory**: 每個新專案**必裝**，是 agent 跨 session 累積知識的基礎
+- **Git Hooks**: **建議安裝**，commit 階段自動攔截品質問題
+- **CI/CD**: 有 GitHub repo 的專案**建議安裝**，PR 階段自動品質檢查
+- **Keybindings**: **可選**，看個人偏好
+- **Workspace**: 多專案環境下**建議安裝**
+
+### 4.5 Setup Skill 完整流程
+
+`/agent-army:setup [project-name]` 的執行步驟：
+
+```mermaid
+graph TD
+    START["開始: /agent-army:setup my-project"] --> S1["Step 1: 專案偵測<br/>讀取 package.json / pyproject.toml<br/>偵測語言與框架"]
+    S1 --> S2["Step 2: 建立 docs/ 結構<br/>reports/, architecture/, archive/, guides/"]
+    S2 --> S3["Step 3: 建立 docs/INDEX.md<br/>文件總索引"]
+    S3 --> S4["Step 4: 產生 .claude/CLAUDE.md<br/>注入 Clean Architecture 標準"]
+    S4 --> S5["Step 5: 配置 .claude/settings.json<br/>啟用 Agent Teams + Hooks + 權限"]
+    S5 --> S6["Step 6: 安裝 Memory Templates<br/>MEMORY.md + topic files"]
+    S6 --> S7["Step 7: 偵測 MCP Servers<br/>推薦 Context7 / Sequential Thinking"]
+    S7 --> S8{"Step 8: Git Hooks?"}
+    S8 -->|使用者同意| S8a["安裝 pre-commit + commit-msg + pre-push"]
+    S8 -->|略過| S9
+    S8a --> S9{"Step 9: Keybindings?"}
+    S9 -->|使用者同意| S9a["安裝 keybindings.json"]
+    S9 -->|略過| S10
+    S9a --> S10{"Step 10: Workspace?"}
+    S10 -->|使用者同意| S10a["安裝 workspace.json"]
+    S10 -->|略過| DONE
+    S10a --> DONE["完成: Agent Army Ready"]
+
+    style START fill:#e74,stroke:#c52,color:#fff
+    style DONE fill:#4a9,stroke:#2d7,color:#fff
+    style S8 fill:#e96,stroke:#c74,color:#fff
+    style S9 fill:#e96,stroke:#c74,color:#fff
+    style S10 fill:#e96,stroke:#c74,color:#fff
+```
+
 ---
 
 ## 5. 工作流程編排
@@ -814,6 +903,36 @@ graph LR
 | `PostToolUse(Bash npm install*/pip install*/etc.)` | 提醒檢查 License, CVE, Bundle size | 依賴安全檢查 |
 | `Stop` | 確認報告已歸檔 | 確保文件完整性 |
 
+#### Hooks 觸發流程
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer / Agent
+    participant CC as Claude Code
+    participant HK as Hook System
+    participant AG as Agent
+
+    Note over Dev,AG: 寫入程式碼時
+    Dev->>CC: Write / Edit file
+    CC->>HK: PostToolUse trigger
+    HK-->>AG: "Verify Clean Architecture compliance"
+
+    Note over Dev,AG: 安裝依賴時
+    Dev->>CC: Bash(npm install ...)
+    CC->>HK: PostToolUse trigger
+    HK-->>AG: "Check License, CVE, Bundle size"
+
+    Note over Dev,AG: Push 前
+    Dev->>CC: Bash(git push ...)
+    CC->>HK: PreToolUse trigger
+    HK-->>AG: "Run /quality-gate first?"
+
+    Note over Dev,AG: Session 結束時
+    Dev->>CC: Stop
+    CC->>HK: Stop trigger
+    HK-->>AG: "Are reports filed in docs/reports/?"
+```
+
 ### 8.3 Clean Architecture 自動審計項目
 
 ```
@@ -826,6 +945,47 @@ graph LR
 ✓ 檔案大小 ≤ 300 行
 ✓ 函數長度 ≤ 50 行
 ```
+
+### 8.4 Permissions 與安全模型
+
+Agent Army 透過 `.claude/settings.json` 的 `permissions` 設定控制哪些指令可自動執行。
+
+#### 預設允許的指令
+
+| 類別 | 允許的指令 | 原因 |
+|------|----------|------|
+| **檔案讀取** | `Read`, `Glob`, `Grep` | 讀取不修改，安全 |
+| **測試執行** | `Bash(npm test *)`, `Bash(python -m pytest *)`, `Bash(go test *)` | 測試不修改產品碼 |
+| **Build 執行** | `Bash(npm run *)`, `Bash(npx *)` | 常規開發指令 |
+| **Git 查詢** | `Bash(git status)`, `Bash(git diff *)`, `Bash(git log *)`, `Bash(git branch *)` | 唯讀 git 操作 |
+| **GitHub CLI** | `Bash(gh pr *)`, `Bash(gh issue *)` | PR 和 Issue 管理 |
+
+#### 需要使用者確認的指令
+
+| 類別 | 範例指令 | 原因 |
+|------|---------|------|
+| **檔案寫入** | `Write`, `Edit` | 修改程式碼需確認 |
+| **Git 修改** | `git commit`, `git push`, `git merge` | 影響版本歷史 |
+| **系統指令** | `rm`, `mv`, 任意 `Bash` | 潛在破壞性操作 |
+
+#### 自訂權限
+
+在 `/agent-army:setup` 時或手動編輯 `.claude/settings.json`：
+
+```json
+{
+  "permissions": {
+    "allow": [
+      "Read", "Glob", "Grep",
+      "Bash(npm test *)",
+      "Bash(npm run *)",
+      "Write"  // ← 加入此行可自動允許檔案寫入
+    ]
+  }
+}
+```
+
+**安全建議**: 保持預設設定，只在信任環境中放寬 Write/Edit 權限。
 
 ---
 

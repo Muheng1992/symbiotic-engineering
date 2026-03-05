@@ -433,6 +433,25 @@ Use the tester agent to write tests for the user module
 2. **Context Load** — 讀取 memory 和 session state，呈現上次工作摘要
 3. **Multi-Agent Sync** — 讀取團隊配置和任務狀態，產生團隊 briefing
 
+**實戰範例**:
+
+```bash
+# 情境 1: 一天結束，保存工作狀態
+/context-sync save
+# → 自動收集 git status、進行中的任務、blockers
+# → 寫入 memory，下次 session 可恢復
+
+# 情境 2: 隔天開始，恢復 context
+/context-sync load
+# → 讀取 memory 和 session state
+# → 呈現上次工作摘要：在做什麼、做到哪裡、有什麼 blocker
+
+# 情境 3: 多 agent 團隊 context 同步
+/context-sync team
+# → 讀取團隊配置和所有 agent 的任務狀態
+# → 產生團隊 briefing：誰在做什麼、哪些任務 blocked
+```
+
 ---
 
 ### `/onboard` — 專案上手分析
@@ -447,6 +466,23 @@ Use the tester agent to write tests for the user module
 3. **Memory Generation** — 產生結構化 MEMORY.md 和 topic files
 4. **Verification** — 驗證 memory 完整性，列出需要人工確認的項目
 
+**實戰範例**:
+
+```bash
+# 剛接手一個新專案
+/onboard my-app
+
+# Onboard 會自動：
+# 1. 掃描檔案結構 → 偵測 React + TypeScript + Express
+# 2. 讀取 package.json → 識別依賴和 scripts
+# 3. 分析架構模式 → 偵測 Clean Architecture / MVC / 無明確架構
+# 4. 產生 MEMORY.md → 記錄技術棧、架構、關鍵檔案
+# 5. 列出需要人工確認的項目 → 環境變數、secrets、部署方式
+#
+# 之後所有 agent session 都會自動讀取這份 memory，
+# 不需要每次重新解釋專案背景
+```
+
 ---
 
 ### `/changelog` — 自動變更日誌
@@ -460,6 +496,20 @@ Use the tester agent to write tests for the user module
 2. **Classification** — 按 Conventional Commits 分類（feat/fix/docs/refactor 等）
 3. **Generation** — 產生 Keep a Changelog 格式
 4. **Filing** — 更新 CHANGELOG.md 和 docs/INDEX.md
+
+**實戰範例**:
+
+```bash
+# 從上個 tag 產生 changelog
+/changelog since v2.0.0
+
+# 指定 release 級別（自動 bump 版本號）
+/changelog release minor
+# → 如果當前是 v3.0.0，會產生 v3.1.0 的 changelog
+
+# 只看 patch 級別的變更
+/changelog release patch
+```
 
 ---
 
@@ -513,6 +563,19 @@ graph TD
 | **implementer** | 寫/改程式碼、多 agent 工作完成後合併整合 | 程式碼檔案 + 整合報告 |
 | **tester** | 寫/跑測試、程式碼審查、安全掃描 | 測試檔案 + 測試報告 + Review 報告 + 安全報告 |
 | **documenter** | 更新文件、產生報告、管理報告歸檔和文件索引 | 文件檔案 + 結構化報告 + INDEX.md + 歸檔 |
+
+### Agent 完整能力參考
+
+| 能力 | tech-lead | architect | implementer | tester | documenter |
+|------|-----------|-----------|-------------|--------|------------|
+| **可用工具** | Read, Grep, Glob, Bash, Task, SendMessage | Read, Grep, Glob, Bash | Read, Write, Edit, Grep, Glob, Bash | Read, Write, Edit, Grep, Glob, Bash | Read, Write, Edit, Grep, Glob, Bash |
+| **Model** | inherit (Opus) | inherit (Opus) | inherit (Opus) | inherit (Opus) | sonnet |
+| **Plan Mode** | No | Yes (唯讀設計) | No | No | No |
+| **Memory** | project | project | project | project | project |
+| **可並行數** | 1 (單例) | 1 (單例) | 1-5 | 1-2 | 1 (單例) |
+| **預載 Skills** | — | dev-standards | dev-standards | dev-standards, tdd, integration-test, code-review | dev-standards |
+| **Write/Edit** | 不可 | 不可 | 可以 | 可以 | 可以 |
+| **Spawn Agents** | 可以 (via Task) | 不可 | 不可 | 不可 | 不可 |
 
 ---
 
@@ -728,7 +791,88 @@ Instructions for Claude when this skill is invoked...
 
 編輯 `.claude/skills/quality-gate/SKILL.md` 來新增或修改品質檢查項目。
 
-### 11.4 新增 Hooks
+### 11.4 Templates 使用說明
+
+Setup 安裝的 templates 可以根據專案需求自訂。
+
+#### Memory Templates
+
+安裝位置：`~/.claude/projects/{project}/memory/`
+
+| 檔案 | 用途 | 自訂建議 |
+|------|------|----------|
+| `MEMORY.md` | 主記憶（200 行上限，自動載入） | 記錄專案概覽、技術棧、關鍵決策 |
+| `architecture.md` | 架構決策記錄 | 記錄分層邊界、API 合約、資料模型 |
+| `debugging.md` | 除錯筆記 | 記錄常見問題和解法 |
+| `patterns.md` | 程式碼模式 | 記錄專案慣用的設計模式和 idioms |
+| `conventions.md` | 命名與風格 | 記錄專案特有的命名規則和工作流程 |
+
+#### Git Hooks Templates
+
+安裝位置：`.git/hooks/`
+
+| Hook | 檢查內容 | 自訂方式 |
+|------|----------|----------|
+| `pre-commit` | 檔案長度 ≤ 300 行、secrets 偵測、.env 攔截 | 修改 `MAX_LINES` 變數或 `SECRETS_PATTERN` |
+| `commit-msg` | Conventional Commits 格式 | 修改 regex pattern |
+| `pre-push` | 推送前提醒 | 加入自訂檢查 |
+
+#### CI/CD Template
+
+安裝位置：`.github/workflows/quality-gate.yml`
+
+6 道品質閘門：Build → Tests → Lint → Security Audit → File Size Check → Commit Messages
+
+可自訂：Node.js 版本、測試指令、安全掃描範圍。
+
+#### Keybindings Template
+
+安裝位置：`~/.claude/keybindings.json`
+
+| 快捷鍵 | 指令 | 說明 |
+|--------|------|------|
+| `Ctrl+Shift+A` | `/agent-army:assemble` | 集結 Agent 大軍 |
+| `Ctrl+Shift+Q` | `/agent-army:quality-gate` | 品質檢查 |
+| `Ctrl+Shift+R` | `/agent-army:code-review` | 程式碼審查 |
+| `Ctrl+Shift+T` | `/agent-army:tdd` | TDD 循環 |
+| `Ctrl+Shift+F` | `/agent-army:fix` | 智慧修復 |
+| `Ctrl+Shift+S` | `/agent-army:sprint` | Sprint 規劃 |
+| `Ctrl+Shift+C` | `/agent-army:context-sync` | Context 同步 |
+
+#### Workspace Template
+
+安裝位置：`~/.claude/workspace.json`
+
+定義多專案環境中的專案清單、共享規範（commit format、branch prefix、push 前品質檢查）。
+
+### 11.5 Hooks 行為詳解
+
+Agent Army 使用兩層 hooks 系統。
+
+#### 層 1: Claude Code Hooks（`.claude/settings.json`）
+
+在 Claude Code 內部觸發，影響 AI agent 的行為：
+
+| Hook | 觸發時機 | 系統訊息 |
+|------|---------|---------|
+| `PostToolUse(Write\|Edit)` | Agent 寫入/編輯程式碼後 | "Verify Clean Architecture compliance — dependencies must point inward only." |
+| `PostToolUse(npm install\|pip install\|...)` | Agent 安裝新依賴後 | "Verify: License compatibility, Known CVEs, Bundle size impact, Is it actively maintained?" |
+| `PreToolUse(git push*)` | Agent 準備 push 前 | "Have you run /agent-army:quality-gate?" |
+| `Stop` | Session 結束前 | "Have all reports been filed in docs/reports/? Is docs/INDEX.md updated?" |
+
+#### 層 2: Git Hooks（`.git/hooks/`，由 Templates 安裝）
+
+在 git 操作時觸發，影響所有開發者（不只是 AI）：
+
+| Hook | 觸發時機 | 檢查內容 |
+|------|---------|---------|
+| `pre-commit` | `git commit` 前 | 檔案長度、secrets 偵測、.env 攔截 |
+| `commit-msg` | Commit message 寫入後 | Conventional Commits 格式驗證 |
+| `pre-push` | `git push` 前 | 品質提醒 |
+
+**兩層互補**: Claude Code Hooks 在 AI 寫碼時即時提醒；Git Hooks 在提交/推送時做最後防線。
+
+### 11.6 新增 Hooks
 
 編輯 `.claude/settings.json` 的 `hooks` 區段。
 
@@ -963,6 +1107,69 @@ cat .claude/settings.json | python3 -m json.tool
 
 # 測試 hook 腳本可執行
 chmod +x .claude/hooks/scripts/*.sh
+```
+
+### Templates 沒有產生
+
+```bash
+# 確認 setup 已執行
+ls -la docs/ .claude/
+
+# 如果缺少 memory templates
+/agent-army:setup my-project
+# setup 會偵測已存在的檔案並只補齊缺少的部分
+
+# 手動安裝特定 template
+# Memory:
+cp plugins/agent-army/templates/memory/* .claude/memory/
+# Git Hooks:
+cp plugins/agent-army/templates/git-hooks/* .git/hooks/
+chmod +x .git/hooks/*
+```
+
+### Setup 失敗
+
+```bash
+# 確認 plugin 已正確安裝
+/plugin list
+
+# 確認目標目錄可寫入
+ls -la .claude/
+
+# 重新執行 setup（安全的，不會覆蓋已存在的檔案）
+/agent-army:setup my-project
+```
+
+### Plugin 更新後功能沒變
+
+```bash
+# 清除 plugin cache
+/plugin uninstall agent-army@symbiotic-engineering
+/plugin install agent-army@symbiotic-engineering
+
+# 確認版本號
+/plugin list  # 應顯示 v3.0.0
+
+# 如果仍有問題，嘗試重新加入 marketplace
+/plugin marketplace remove symbiotic-engineering
+/plugin marketplace add Muheng1992/symbiotic-engineering
+/plugin install agent-army@symbiotic-engineering
+```
+
+### Git Worktree 衝突
+
+```bash
+# 列出所有 worktrees
+git worktree list
+
+# 清理過期的 worktrees
+git worktree prune
+
+# 如果 implementer 留下了未清理的 worktree
+git worktree remove /path/to/worktree --force
+
+# 預防措施：在 /assemble 時指定 worktree 清理
+/assemble [feature]. Clean up worktrees after completion.
 ```
 
 ---

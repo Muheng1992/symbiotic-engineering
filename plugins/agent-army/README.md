@@ -1,7 +1,7 @@
 # Agent Army — Claude Code Plugin
 
 > AI-powered software development team for Claude Code CLI.
-> 5 specialized agents + 11 skills covering the full SDLC with Clean Architecture enforcement.
+> 5 specialized agents + 14 skills + 5 template categories covering the full SDLC with Clean Architecture enforcement.
 
 ## Quick Install
 
@@ -60,7 +60,7 @@ Add to your project's `.claude/settings.json`:
 | `tester` | Testing + code review + security audit | opus |
 | `documenter` | Documentation + reports + filing | sonnet |
 
-### 11 Skills (Slash Commands)
+### 14 Skills (Slash Commands)
 
 | Skill | Command | Purpose |
 |-------|---------|---------|
@@ -74,6 +74,9 @@ Add to your project's `.claude/settings.json`:
 | **Fix** | `/agent-army:fix [error]` | Smart problem resolution & diagnosis |
 | **Timesheet** | `/agent-army:timesheet [time-range]` | Work time analysis & daily report |
 | **Retrospective** | `/agent-army:retrospective` | Mission retrospective & self-improvement |
+| **Context Sync** | `/agent-army:context-sync [mode]` | Cross-session context synchronization (save/load/team) |
+| **Onboard** | `/agent-army:onboard [project-name]` | Project analysis & memory bootstrapping |
+| **Changelog** | `/agent-army:changelog [spec]` | Auto changelog from git history & reports |
 | **Dev Standards** | *(auto-loaded)* | Clean Architecture & coding standards |
 
 ### Hooks
@@ -82,6 +85,18 @@ Add to your project's `.claude/settings.json`:
 |-------|---------|--------|
 | `PostToolUse` | After Write/Edit | Remind Clean Architecture compliance |
 | `Stop` | Before session end | Check if reports are filed |
+
+### 5 Template Categories
+
+Installed by `/agent-army:setup`:
+
+| Category | Files | Purpose |
+|----------|-------|---------|
+| **Memory** | `MEMORY.md` + 4 topic files | Structured AI memory architecture for cross-session knowledge |
+| **Git Hooks** | `pre-commit`, `commit-msg`, `pre-push` | Auto-check file length, secrets, commit format |
+| **CI/CD** | `quality-gate.yml` | GitHub Actions quality gate (6 checks) |
+| **Keybindings** | `keybindings.json` | Keyboard shortcuts for common Agent Army commands |
+| **Workspace** | `workspace.json` | Multi-project coordination settings |
 
 ## Workflow Example
 
@@ -116,7 +131,7 @@ graph LR
 ```
 Agent Army Plugin
 ├── agents/           5 specialized agent definitions
-├── skills/           11 skills (slash commands)
+├── skills/           14 skills (slash commands)
 │   ├── assemble/     Full army orchestrator
 │   ├── sprint/       Sprint planning
 │   ├── quality-gate/ Quality checkpoints
@@ -126,8 +141,17 @@ Agent Army Plugin
 │   ├── fix/          Smart problem resolution
 │   ├── timesheet/    Work time analysis & daily report
 │   ├── retrospective/ Mission retrospective
+│   ├── context-sync/ Cross-session context sync
+│   ├── onboard/      Project analysis & memory init
+│   ├── changelog/    Auto changelog generation
 │   ├── setup/        Project initialization
 │   └── dev-standards/ Coding standards (auto-loaded)
+├── templates/        5 template categories
+│   ├── memory/       AI memory architecture templates
+│   ├── git-hooks/    Pre-commit, commit-msg, pre-push
+│   ├── ci/           GitHub Actions quality gate
+│   ├── keybindings/  Keyboard shortcut definitions
+│   └── workspace/    Multi-project coordination
 └── hooks/            Clean Architecture enforcement
 ```
 
@@ -146,6 +170,16 @@ Agent Army Plugin
 - **TDD Enforcement**: Red-Green-Refactor cycle as a blocking gate
 - **Smart Fix**: Automatic diagnosis and dynamic agent selection for bug fixes
 - **Role Isolation**: Tech Lead coordinates only; Architect designs only (plan mode)
+- **Cross-Session Memory**: Context Sync saves/restores work state across sessions
+- **One-Click Onboard**: Scans project, generates structured memory for instant context
+- **Auto Changelog**: Generates Keep a Changelog format from git history & reports
+- **Project Templates**: 5 template categories (memory, git-hooks, CI, keybindings, workspace)
+
+## Version
+
+**Current**: v3.0.0
+
+See the main repository [CHANGELOG.md](../../CHANGELOG.md) for version history.
 
 ## License
 

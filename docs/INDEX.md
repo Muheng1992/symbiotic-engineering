@@ -5,6 +5,14 @@
 
 ---
 
+## 版本歷史
+
+| Document | Description |
+|----------|-------------|
+| [CHANGELOG](../CHANGELOG.md) | 版本變更歷史（v1.0.0 → v3.0.0） |
+
+---
+
 ## Plugin 文件 (`docs/plugin/`)
 
 Agent Army 系統的安裝、設計與使用說明。
