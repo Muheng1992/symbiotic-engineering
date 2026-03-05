@@ -1,7 +1,7 @@
 # Documentation Index
 
 > **Last updated**: 2026-03-05
-> **Total documents**: 15 | Active: 14 | Archived: 1
+> **Total documents**: 17 | Active: 16 | Archived: 1
 
 ---
 
@@ -37,6 +37,13 @@ Agent Army 系統的安裝、設計與使用說明。
 |----------|------|
 | [iPhone 遠端開發完全指南](guides/iphone-remote-dev-guide.md) | Claude Code Remote Control + SSH + VNC，用手機寫 Code |
 | [雙 Mac 遠端開發完全指南](guides/dual-mac-dev-guide.md) | Mac Mini 伺服器 + MacBook 客戶端，個人開發雲 |
+
+### 技術深度研究
+
+| Document | 主題 |
+|----------|------|
+| [MCP Server 生態系完全指南](guides/mcp-server-ecosystem-guide.md) | Model Context Protocol 從協議到企業架構，5,800+ servers 生態系 |
+| [AI Agent 可觀測性與成本控制完全指南](guides/ai-agent-observability-guide.md) | 多 Agent 系統可觀測性、成本優化、自我修復、監控指標 |
 
 ---
 
