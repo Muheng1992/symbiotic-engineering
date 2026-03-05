@@ -222,16 +222,16 @@ MCP 所有通訊都基於 JSON-RPC 2.0:
 ### 2.1 生態系規模 (2026 Q1)
 
 ```mermaid
-pie title MCP Server 分布 (18,091 total on Glama)
-    "開發者工具 (Git/GitHub/IDE)" : 2850
-    "資料庫 (SQL/NoSQL/Vector)" : 2400
-    "搜尋與檢索 (Brave/Exa/Tavily)" : 1620
-    "瀏覽器自動化 (Playwright/Puppeteer)" : 1080
-    "雲端基礎設施 (AWS/GCP/Azure)" : 1440
-    "監控與日誌 (Datadog/Sentry)" : 900
-    "溝通協作 (Slack/Linear/Jira)" : 1260
-    "AI/RAG (Embeddings/Vector DB)" : 1800
-    "其他 (CLI/Utils/Custom)" : 4741
+pie title MCP Server 分布 - 18,091 total on Glama
+    "開發者工具 Git/GitHub/IDE" : 2850
+    "資料庫 SQL/NoSQL/Vector" : 2400
+    "搜尋與檢索 Brave/Exa/Tavily" : 1620
+    "瀏覽器自動化 Playwright/Puppeteer" : 1080
+    "雲端基礎設施 AWS/GCP/Azure" : 1440
+    "監控與日誌 Datadog/Sentry" : 900
+    "溝通協作 Slack/Linear/Jira" : 1260
+    "AI/RAG Embeddings/Vector DB" : 1800
+    "其他 CLI/Utils/Custom" : 4741
 ```
 
 ### 2.2 按類別分類的代表性 Servers

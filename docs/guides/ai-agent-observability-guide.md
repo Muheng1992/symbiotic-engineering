@@ -666,7 +666,7 @@ graph TD
     B -->|Miss| D{Semantic Cache?}
     D -->|Hit| E[Return Similar Response<br/>Latency: ~50ms]
     D -->|Miss| F{Prompt Cache?}
-    F -->|Hit| G[LLM Call (90% discount)<br/>Latency: ~2s]
+    F -->|Hit| G[LLM Call - 90% discount<br/>Latency: ~2s]
     F -->|Miss| H[Full LLM Call<br/>Latency: ~5s]
 
     C --> I[Log Cache Hit]
