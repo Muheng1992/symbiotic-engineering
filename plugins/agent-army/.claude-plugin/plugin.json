@@ -1,7 +1,7 @@
 {
   "name": "agent-army",
-  "version": "2.0.0",
-  "description": "AI-powered software development team (Agent Army) — 5 specialized agents + 11 skills for full SDLC coverage, streamlined based on industry best practices",
+  "version": "3.0.0",
+  "description": "AI-powered software development team (Agent Army) — 5 specialized agents + 14 skills + project templates for full SDLC coverage, streamlined based on industry best practices",
   "author": {
     "name": "Symbiotic Engineering",
     "url": "https://github.com/Muheng1992/symbiotic-engineering"
@@ -19,6 +19,12 @@
     "testing",
     "sprint-planning",
     "quality-gate",
-    "development-team"
+    "development-team",
+    "context-sync",
+    "onboarding",
+    "changelog",
+    "templates",
+    "memory",
+    "git-hooks"
   ]
 }

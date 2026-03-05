@@ -1,6 +1,6 @@
 # Agent Army 系統設計文件
 
-> **版本**: 2.0.0 | **最後更新**: 2026-03-04
+> **版本**: 3.0.0 | **最後更新**: 2026-03-05
 > **目標**: 讓單人開發者透過 Claude Code CLI 指揮 AI Agent 大軍，實現從規劃到部署的全自動化軟體開發流程
 
 ---
@@ -162,7 +162,7 @@ graph TB
 │   ├── implementer.md                 # 程式碼實作者 + 整合專家
 │   ├── tester.md                      # 測試 + 審查 + 安全審計
 │   └── documenter.md                  # 文件撰寫 + 報告 + 文件管理
-├── skills/                            # 10 個核心 Skill（不含 setup）
+├── skills/                            # 13 個核心 Skill（不含 setup）
 │   ├── assemble/                      # Agent 大軍集結器
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -186,7 +186,13 @@ graph TB
 │   │   └── SKILL.md
 │   ├── fix/                           # 智慧問題修復
 │   │   └── SKILL.md
-│   └── timesheet/                     # 工時分析與日報
+│   ├── timesheet/                     # 工時分析與日報
+│   │   └── SKILL.md
+│   ├── context-sync/                  # 跨 Session Context 同步
+│   │   └── SKILL.md
+│   ├── onboard/                       # 專案分析與 Memory 初始化
+│   │   └── SKILL.md
+│   └── changelog/                     # 自動變更日誌產生
 │       └── SKILL.md
 └── hooks/                             # 品質保證 Hooks
     └── scripts/
@@ -196,6 +202,23 @@ plugins/agent-army/                    # Plugin 封裝（GitHub 分發用）
 ├── .claude-plugin/plugin.json         # Plugin manifest
 ├── agents/                            # (與 .claude/agents/ 相同)
 ├── skills/                            # (與 .claude/skills/ 相同 + setup)
+├── templates/                         # 專案初始化範本
+│   ├── memory/                        # Memory 架構範本
+│   │   ├── MEMORY.md
+│   │   ├── architecture.md
+│   │   ├── debugging.md
+│   │   ├── patterns.md
+│   │   └── conventions.md
+│   ├── git-hooks/                     # Git Hooks 範本
+│   │   ├── pre-commit
+│   │   ├── commit-msg
+│   │   └── pre-push
+│   ├── ci/                            # CI/CD 範本
+│   │   └── quality-gate.yml
+│   ├── keybindings/                   # 快捷鍵範本
+│   │   └── keybindings.json
+│   └── workspace/                     # 多專案範本
+│       └── workspace.json
 ├── hooks/hooks.json                   # Clean Architecture hooks
 ├── settings.json                      # Default agent settings
 └── README.md                          # 安裝說明
@@ -376,6 +399,9 @@ sequenceDiagram
 | `/tdd` | 手動 (`/tdd [feature]`) | Main context / Preloaded in tester | TDD Red-Green-Refactor 強制 |
 | `/fix` | 手動 (`/fix [error]`) | Main context | 智慧問題診斷與修復 |
 | `/timesheet` | 手動 (`/timesheet [time-range]`) | Main context | 工時分析與日報 |
+| `/context-sync` | 手動 (`/context-sync [save\|load\|team]`) | Main context | 跨 Session Context 同步 |
+| `/onboard` | 手動 (`/onboard [project-name]`) | Main context | 專案分析與 Memory 初始化 |
+| `/changelog` | 手動 (`/changelog [since tag]`) | Main context | 自動變更日誌產生 |
 | `dev-standards` | 自動（Claude 判斷載入） | Preloaded in agents | 開發標準 |
 
 ### 4.3 Skill 與 Agent 的關係
@@ -393,6 +419,9 @@ graph TD
         S9[tdd]
         S10[fix]
         S11[timesheet]
+        S12[context-sync]
+        S13[onboard]
+        S14[changelog]
     end
 
     subgraph "Agents"
@@ -414,6 +443,8 @@ graph TD
     S8 -->|"analyzes output of"| A5
     S8 -->|"updates memory of"| A1
 
+    S14 -->|"generates via"| A5
+
     S5 -->|preloaded in| A2
     S5 -->|preloaded in| A3
     S5 -->|preloaded in| A4
@@ -425,10 +456,15 @@ graph TD
     A1 -->|spawns| A5
 
     S11 -.->|"standalone (no agent)"| S11
+    S12 -.->|"standalone (no agent)"| S12
+    S13 -.->|"standalone (no agent)"| S13
 
     style S1 fill:#e74,stroke:#c52,color:#fff
     style S5 fill:#4a9,stroke:#2d7,color:#fff
     style S11 fill:#59b,stroke:#37a,color:#fff
+    style S12 fill:#59b,stroke:#37a,color:#fff
+    style S13 fill:#59b,stroke:#37a,color:#fff
+    style S14 fill:#9a4,stroke:#7d2,color:#fff
 ```
 
 ---
@@ -774,6 +810,8 @@ graph LR
 | Hook 事件 | 觸發行為 | 目的 |
 |-----------|----------|------|
 | `PostToolUse(Write/Edit)` | 提醒 Clean Architecture 合規 | 預防性品質檢查 |
+| `PreToolUse(Bash git push*)` | 提醒先跑 quality-gate | 推送品質保證 |
+| `PostToolUse(Bash npm install*/pip install*/etc.)` | 提醒檢查 License, CVE, Bundle size | 依賴安全檢查 |
 | `Stop` | 確認報告已歸檔 | 確保文件完整性 |
 
 ### 8.3 Clean Architecture 自動審計項目
@@ -854,7 +892,7 @@ graph TB
         subgraph "plugins/agent-army/"
             PJ[".claude-plugin/plugin.json"]
             AG["agents/ (5 agents)"]
-            SK["skills/ (11 skills)"]
+            SK["skills/ (14 skills)"]
             HK["hooks/hooks.json"]
             ST["settings.json"]
         end
@@ -887,7 +925,7 @@ plugins/agent-army/                    # Plugin Root
 │   ├── implementer.md
 │   ├── tester.md
 │   └── documenter.md
-├── skills/                            # 11 Skills
+├── skills/                            # 14 Skills
 │   ├── assemble/                      # Agent army orchestrator
 │   │   ├── SKILL.md
 │   │   └── references/
@@ -907,11 +945,23 @@ plugins/agent-army/                    # Plugin Root
 │   │   └── SKILL.md
 │   ├── timesheet/                     # Work time analysis & daily report
 │   │   └── SKILL.md
+│   ├── context-sync/                  # Cross-session context sync
+│   │   └── SKILL.md
+│   ├── onboard/                       # Project analysis & memory init
+│   │   └── SKILL.md
+│   ├── changelog/                     # Auto changelog generation
+│   │   └── SKILL.md
 │   ├── dev-standards/                 # Coding standards (auto)
 │   │   ├── SKILL.md
 │   │   └── references/
 │   └── setup/                         # Project initialization
 │       └── SKILL.md
+├── templates/                         # 專案初始化範本
+│   ├── memory/                        # Memory 架構範本
+│   ├── git-hooks/                     # Git Hooks 範本
+│   ├── ci/                            # CI/CD 範本
+│   ├── keybindings/                   # 快捷鍵範本
+│   └── workspace/                     # 多專案範本
 ├── hooks/
 │   └── hooks.json                     # Clean Arch enforcement
 ├── settings.json                      # Default agent settings
@@ -1015,4 +1065,4 @@ sequenceDiagram
 
 ---
 
-*Agent Army System v2.0.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army System v3.0.0 | Symbiotic Engineering | 2026-03-05*

@@ -95,6 +95,9 @@ This project includes a multi-agent development system in `.claude/`:
 | `/tdd` | TDD enforcement | `/tdd [feature description]` |
 | `/fix` | Smart problem resolution | `/fix [error or bug description]` |
 | `/timesheet` | Work time analysis & daily report | `/timesheet [time-range]` |
+| `/context-sync` | Cross-session context synchronization | `/context-sync [save\|load\|team]` |
+| `/onboard` | Project analysis & memory bootstrapping | `/onboard [project-name]` |
+| `/changelog` | Auto changelog generation | `/changelog [since tag \| release level]` |
 | `dev-standards` | Coding standards (auto-loaded) | Automatic |
 
 ### Report Management

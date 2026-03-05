@@ -1,6 +1,6 @@
 # Agent Army 使用指南
 
-> **版本**: 2.0.0 | **最後更新**: 2026-03-04
+> **版本**: 3.0.0 | **最後更新**: 2026-03-05
 > 從零開始設定和使用 Agent Army 系統的完整教學
 
 ---
@@ -103,6 +103,11 @@ claude --print-settings | grep AGENT_TEAMS
 - 建立或更新 `.claude/CLAUDE.md`（含 Clean Architecture 標準）
 - 配置 `.claude/settings.json`（啟用 Agent Teams）
 - 建立 `docs/INDEX.md` 和 `docs/archive/ARCHIVE-INDEX.md`
+- 初始化 Memory 架構（project memory templates）
+- 偵測並推薦 MCP Servers（Context7、Sequential Thinking、Puppeteer）
+- 安裝 Git Hooks（pre-commit、commit-msg、pre-push，可選）
+- 配置 Keybindings（Agent Army 快捷鍵，可選）
+- Workspace 設定（多專案協調，可選）
 
 ### 方式 B: 本機測試安裝
 
@@ -414,6 +419,47 @@ Use the tester agent to write tests for the user module
 **用途**: 分析多專案工作時間，產出日報
 
 **語法**: `/timesheet [time-range]`
+
+---
+
+### `/context-sync` — 跨 Session Context 同步
+
+**用途**: 在 session 結束前保存工作狀態，session 開始時恢復 context，支持多 agent context 傳遞
+
+**語法**: `/context-sync [save | load | team]`
+
+**三階段流程**:
+1. **Context Save** — 收集 git 狀態、進行中的任務、blockers，寫入 memory
+2. **Context Load** — 讀取 memory 和 session state，呈現上次工作摘要
+3. **Multi-Agent Sync** — 讀取團隊配置和任務狀態，產生團隊 briefing
+
+---
+
+### `/onboard` — 專案上手分析
+
+**用途**: 掃描專案結構、偵測技術棧和架構模式、產生結構化 memory
+
+**語法**: `/onboard [project-name]`
+
+**四階段流程**:
+1. **Discovery** — 偵測語言、框架、Monorepo 結構、工具配置
+2. **Deep Analysis** — 讀取 README、package manifest、架構模式偵測
+3. **Memory Generation** — 產生結構化 MEMORY.md 和 topic files
+4. **Verification** — 驗證 memory 完整性，列出需要人工確認的項目
+
+---
+
+### `/changelog` — 自動變更日誌
+
+**用途**: 從 git 歷史和開發報告自動產生 CHANGELOG.md
+
+**語法**: `/changelog [since tag | release major/minor/patch]`
+
+**四階段流程**:
+1. **Data Collection** — 解析 git log、讀取 docs/reports/
+2. **Classification** — 按 Conventional Commits 分類（feat/fix/docs/refactor 等）
+3. **Generation** — 產生 Keep a Changelog 格式
+4. **Filing** — 更新 CHANGELOG.md 和 docs/INDEX.md
 
 ---
 
@@ -937,6 +983,9 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/agent-army:tdd [feature]` | TDD 強制執行 | `/agent-army:tdd add validation logic` |
 | `/agent-army:fix [error]` | 智慧問題修復 | `/agent-army:fix build fails with type error` |
 | `/agent-army:timesheet [range]` | 工時分析 | `/agent-army:timesheet today` |
+| `/agent-army:context-sync [mode]` | 跨 Session Context 同步 | `/agent-army:context-sync save` |
+| `/agent-army:onboard [name]` | 專案上手分析 | `/agent-army:onboard my-app` |
+| `/agent-army:changelog [spec]` | 自動變更日誌 | `/agent-army:changelog release minor` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ### 手動安裝版（無前綴）
@@ -952,8 +1001,11 @@ chmod +x .claude/hooks/scripts/*.sh
 | `/tdd [feature]` | TDD 強制執行 | `/tdd add validation logic` |
 | `/fix [error]` | 智慧問題修復 | `/fix build fails with type error` |
 | `/timesheet [range]` | 工時分析 | `/timesheet today` |
+| `/context-sync [mode]` | 跨 Session Context 同步 | `/context-sync save` |
+| `/onboard [name]` | 專案上手分析 | `/onboard my-app` |
+| `/changelog [spec]` | 自動變更日誌 | `/changelog release minor` |
 | `/batch [instruction]` | 大規模並行變更 | `/batch migrate to React hooks` |
 
 ---
 
-*Agent Army Usage Guide v2.0.0 | Symbiotic Engineering | 2026-03-04*
+*Agent Army Usage Guide v3.0.0 | Symbiotic Engineering | 2026-03-05*
