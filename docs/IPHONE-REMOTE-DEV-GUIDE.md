@@ -29,22 +29,32 @@
 
 ### 操作原理圖
 
-```
-┌─────────────┐                              ┌─────────────┐
-│   iPhone    │                              │     Mac     │
-│             │    方式一: Remote Control     │             │
-│  Claude App ├──── HTTPS/WSS ──── Anthropic ──── claude   │
-│             │    (端到端加密)     (中介)     │  (本地執行)  │
-│             │                              │             │
-│  SSH Client ├──── SSH (port 22) ───────────┤── sshd      │
-│  (Termius)  │    方式二: 加密終端           │  + tmux     │
-│             │                              │             │
-│  VNC Client ├──── VNC (port 5900) ─────────┤── Screen    │
-│  (Screens)  │    方式三: 畫面串流           │   Sharing   │
-└─────────────┘                              └─────────────┘
-        │                                           │
-        └──── Tailscale VPN (100.x.x.x) ───────────┘
-              (跨網路安全連線)
+```mermaid
+graph LR
+    subgraph iPhone
+        A1[Claude App]
+        A2[SSH Client<br/>Moshi / Termius]
+        A3[VNC Client<br/>Screens / Chrome RD]
+    end
+
+    subgraph Cloud["雲端 / 網路層"]
+        B1[Anthropic API<br/>端到端加密]
+        B2[Tailscale VPN<br/>WireGuard 加密]
+    end
+
+    subgraph Mac
+        C1[claude CLI<br/>本地執行]
+        C2[sshd + tmux<br/>終端機]
+        C3[Screen Sharing<br/>GUI 桌面]
+    end
+
+    A1 -->|"方式一: HTTPS/WSS"| B1 -->|"路由指令"| C1
+    A2 -->|"方式二: SSH port 22"| B2 -->|"加密通道"| C2
+    A3 -->|"方式三: VNC port 5900"| B2 -->|"畫面串流"| C3
+
+    style iPhone fill:#007AFF,color:#fff
+    style Mac fill:#34C759,color:#fff
+    style Cloud fill:#FF9500,color:#fff
 ```
 
 ---
@@ -63,17 +73,20 @@
 
 ### 運作原理
 
-```
-iPhone Claude App                 Anthropic API               Mac Terminal
-     │                               │                           │
-     │  1. 掃描 QR Code 連線         │                           │
-     ├──────────────────────────────►│                           │
-     │                               │  2. 路由訊息到本地會話    │
-     │                               ├──────────────────────────►│
-     │                               │                           │ 3. 本地執行
-     │                               │  4. 回傳結果              │    (讀寫檔案、
-     │  5. 顯示結果                  │◄────────────────────────── │     執行指令)
-     │◄──────────────────────────────│                           │
+```mermaid
+sequenceDiagram
+    participant iPhone as iPhone Claude App
+    participant API as Anthropic API
+    participant Mac as Mac Terminal (claude)
+
+    iPhone->>API: 1. 掃描 QR Code 連線
+    API->>Mac: 2. 路由訊息到本地會話
+    Mac->>Mac: 3. 本地執行 (讀寫檔案、執行指令)
+    Mac->>API: 4. 回傳結果
+    API->>iPhone: 5. 顯示結果
+
+    Note over iPhone,Mac: 端到端加密 — Anthropic 無法查看程式碼
+    Note over Mac: 程式碼永遠不離開 Mac
 ```
 
 - **僅出站 HTTPS**：Mac 不開啟任何入站埠口
@@ -164,13 +177,16 @@ claude remote-control
 
 SSH（Secure Shell）在 iPhone 和 Mac 之間建立加密的文字通道。你在 iPhone 上看到的就是 Mac 的終端機畫面，所有指令都在 Mac 上執行。
 
-```
-iPhone SSH Client ──── 加密通道 (port 22) ────► Mac sshd
-                                                   │
-                                                   ├── tmux 會話管理
-                                                   ├── Claude Code CLI
-                                                   ├── vim/nano 編輯器
-                                                   └── 所有 CLI 工具
+```mermaid
+graph LR
+    A[iPhone SSH Client] -->|"加密通道 port 22<br/>< 128Kbps"| B[Mac sshd]
+    B --> C[tmux 會話管理]
+    C --> D[Claude Code CLI]
+    C --> E[vim / nano 編輯器]
+    C --> F[所有 CLI 工具]
+
+    style A fill:#007AFF,color:#fff
+    style B fill:#34C759,color:#fff
 ```
 
 **頻寬需求極低**：< 128Kbps 即可流暢使用（4G/5G 完全足夠）
@@ -297,25 +313,36 @@ tmux ls
 
 ### SSH + Claude Code 完整工作流
 
-```bash
-# 1. Mac 端：啟動 tmux + Claude Code（出門前）
-tmux new -s claude-work
-claude
+```mermaid
+graph TD
+    A["1. 出門前：Mac 啟動 tmux + Claude Code"] --> B["2. 通勤中：iPhone SSH 連入"]
+    B --> C["3. 手機操作 Claude Code<br/>輸入指令、審核代碼、監控進度"]
+    C --> D{"4. 網路中斷？<br/>切 App / 進地鐵"}
+    D -->|"斷線"| E["tmux 保持會話<br/>Claude Code 繼續運行"]
+    D -->|"保持連線"| C
+    E --> F["5. 網路恢復：重連 SSH"]
+    F --> G["tmux attach — 一切都還在！"]
+    G --> C
 
-# 2. iPhone 端：SSH 連入（通勤中）
+    style A fill:#34C759,color:#fff
+    style B fill:#007AFF,color:#fff
+    style C fill:#5856D6,color:#fff
+    style E fill:#FF9500,color:#fff
+    style G fill:#34C759,color:#fff
+```
+
+**指令速查**：
+```bash
+# Mac 端（出門前）
+tmux new -s claude-work && claude
+
+# iPhone 端（通勤中）
 ssh username@100.x.x.x    # Tailscale IP
 tmux attach -t claude-work
 
-# 3. 在手機上操作 Claude Code
-# 輸入指令、審核代碼、監控進度
-
-# 4. 斷線不影響（切 App、進地鐵）
-# Claude Code 在 tmux 中繼續運行
-
-# 5. 重連恢復（網路恢復後）
+# 斷線重連
 ssh username@100.x.x.x
-tmux attach -t claude-work
-# 一切都還在！
+tmux attach -t claude-work  # 一切都還在！
 ```
 
 ### 終端機編輯器選擇
@@ -344,18 +371,18 @@ tmux attach -t claude-work
 
 VNC/RDP 將 Mac 的整個螢幕畫面壓縮後串流到 iPhone，你在 iPhone 上的觸控操作會轉換為 Mac 上的滑鼠/鍵盤事件。
 
-```
-iPhone VNC Client                           Mac Screen Sharing
-     │                                           │
-     │  1. 連線請求 (port 5900)                  │
-     ├──────────────────────────────────────────►│
-     │                                           │ 2. 擷取螢幕畫面
-     │  3. 壓縮畫面串流 (H.264/HEVC)             │
-     │◄──────────────────────────────────────────┤
-     │                                           │
-     │  4. 觸控事件 → 滑鼠/鍵盤事件              │
-     ├──────────────────────────────────────────►│ 5. 在 Mac 上執行
-     │                                           │
+```mermaid
+sequenceDiagram
+    participant iPhone as iPhone VNC Client
+    participant Mac as Mac Screen Sharing
+
+    iPhone->>Mac: 1. 連線請求 (port 5900)
+    Mac->>Mac: 2. 擷取螢幕畫面
+    Mac->>iPhone: 3. 壓縮畫面串流 (H.264/HEVC)
+    iPhone->>Mac: 4. 觸控事件 → 滑鼠/鍵盤事件
+    Mac->>Mac: 5. 在 Mac 上執行操作
+
+    Note over iPhone,Mac: 頻寬需求較高：1080p@30fps 約 1-3 GB/hr
 ```
 
 **頻寬需求較高**：1080p@30fps 約 1-3 GB/hr
