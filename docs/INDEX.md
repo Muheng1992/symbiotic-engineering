@@ -1,7 +1,7 @@
 # Documentation Index
 
 > **Last updated**: 2026-03-05
-> **Total documents**: 17 | Active: 16 | Archived: 1
+> **Total documents**: 18 | Active: 17 | Archived: 1
 
 ---
 
@@ -44,6 +44,7 @@ Agent Army 系統的安裝、設計與使用說明。
 |----------|------|
 | [MCP Server 生態系完全指南](guides/mcp-server-ecosystem-guide.md) | Model Context Protocol 從協議到企業架構，5,800+ servers 生態系 |
 | [AI Agent 可觀測性與成本控制完全指南](guides/ai-agent-observability-guide.md) | 多 Agent 系統可觀測性、成本優化、自我修復、監控指標 |
+| [Claude Code CLI 企業部署完全指南](guides/claude-code-enterprise-deployment-guide.md) | 企業級部署方案、預算規劃、用量追蹤、成本優化、安全合規 |
 
 ---
 
