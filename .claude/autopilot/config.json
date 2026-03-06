@@ -1,0 +1,15 @@
+{
+  "maxIterations": 50,
+  "maxCostUsd": 999999,
+  "maxDurationMinutes": 480,
+  "cooldownSeconds": 15,
+  "perIterationBudgetUsd": 999999,
+  "model": "sonnet",
+  "gitCheckpoint": true,
+  "maxRetriesPerTask": 2,
+  "permissionMode": "default",
+  "dangerouslySkipPermissions": false,
+  "useSkills": true,
+  "createdAt": "2026-03-06T17:45:00+08:00",
+  "lastModified": "2026-03-06T17:45:00+08:00"
+}

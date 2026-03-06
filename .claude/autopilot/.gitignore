@@ -1,0 +1,5 @@
+# Autopilot runtime files (not tracked)
+logs/
+autopilot.lock
+STOP
+retries.json
