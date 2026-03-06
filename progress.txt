@@ -10,3 +10,11 @@
 - **完整追溯**：所有外部來源都有正確的引用連結
 
 文件已準備好供團隊使用，可立即應用於 Agent Army 系統的安全強化。
+
+### Iteration 2 - T02: Research multi-agent coordination design patterns
+- Status: DONE
+- Summary: - 完整追溯（所有外部資源都有連結）
+- 可執行程式碼範例（bash, yaml, json, typescript）
+- 架構決策追溯（為什麼選這個方案）
+
+文件已準備好供團隊使用，可立即應用於 Agent Army 系統的協調機制優化！

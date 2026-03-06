@@ -12,7 +12,7 @@ Symbiotic Engineering 是一個基於 Claude Code CLI 的多代理開發框架�
 
 ### Phase 1: Research & Documentation
 
-- [ ] **T01**: Research developer productivity tools and patterns
+- [x] **T01**: Research developer productivity tools and patterns
   - Description: 研究 2025-2026 年開發效率工具生態系。涵蓋：(1) Code scaffolding/template engines (Plop, Hygen, Yeoman alternatives) (2) DAG-based task schedulers (Dagger, Turborepo patterns) (3) Agent cost tracking solutions (Langfuse, Helicone, custom hooks) (4) Batch operation patterns for AI agents (5) Agent health monitoring patterns (heartbeat, watchdog). 將研究結果寫入 `docs/guides/dev-efficiency-tools-research.md`，格式參考現有 guides（繁體中文，30-50KB）。
   - Files: docs/guides/dev-efficiency-tools-research.md
   - Acceptance: 文件存在且包含至少 5 個工具類別的深度分析，每個類別至少 3 個候選方案
