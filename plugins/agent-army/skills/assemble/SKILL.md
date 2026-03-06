@@ -104,6 +104,39 @@ Map score to grade:
 - **Score 7-10 → No cap**, but justify each agent in the Grading Card.
 - **If you skip this phase or don't output the Grading Card, you are violating protocol.**
 
+### Autopilot Mode Detection
+
+After outputting the Grading Card, check if autopilot mode should be activated:
+
+**Auto-activation (when `$ARGUMENTS` contains `--autopilot`):**
+If the user passed `--autopilot` flag (e.g. `/assemble build auth module --autopilot`), switch to autopilot mode regardless of grade.
+
+**Suggested activation (Grade B or C without `--autopilot`):**
+If grade is B (4-6) or C (7-10), suggest autopilot mode to the user:
+```
+This is a [Grade B/C] task with [N] files. Consider using autopilot mode
+for continuous autonomous iteration:
+
+  /autopilot [original task description]
+
+Autopilot will decompose the work into a BACKLOG.md and execute tasks
+one by one in a tmux outer loop — no manual intervention needed.
+
+Proceed with standard assemble (one round) or switch to autopilot?
+```
+
+**When autopilot is activated:**
+1. Do NOT proceed with Phase 2-5 of assemble
+2. Instead, execute the `/autopilot` skill in **one-shot mode**:
+   - Use the same task description from `$ARGUMENTS` (minus the `--autopilot` flag)
+   - Phase 1 (init): Decompose into BACKLOG.md using the Impact Analysis data already gathered
+   - Phase 2 (start): Launch tmux outer loop immediately
+3. The assemble skill's Grading Card data feeds into the autopilot's init phase
+   (pass the file lists and scope analysis as context)
+
+**When autopilot is NOT activated:**
+Continue with Phase 2 (Mission Planning) as normal.
+
 ## Phase 2: Mission Planning
 
 Based on the Grading Card, create a structured plan:

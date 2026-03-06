@@ -4,15 +4,15 @@
     "name": "Symbiotic Engineering"
   },
   "metadata": {
-    "description": "AI Agent Army — multi-agent development framework for Claude Code. 5 specialized agents + 14 skills + project templates covering the full software development lifecycle with Clean Architecture enforcement.",
-    "version": "2.0.0"
+    "description": "AI Agent Army — multi-agent development framework for Claude Code. 5 specialized agents + 15 skills + project templates covering the full software development lifecycle with Clean Architecture enforcement and autonomous iteration.",
+    "version": "3.1.0"
   },
   "plugins": [
     {
       "name": "agent-army",
       "source": "./plugins/agent-army",
-      "description": "AI-powered software development team — 5 specialized agents (tech-lead, architect, implementer, tester, documenter) + 14 skills (assemble, sprint, quality-gate, context-sync, integration-test, code-review, retrospective, tdd, fix, timesheet, setup, dev-standards, onboard, changelog) + project templates (memory, git-hooks, ci, keybindings, workspace) for full SDLC coverage with Clean Architecture enforcement.",
-      "version": "3.0.0",
+      "description": "AI-powered software development team — 5 specialized agents (tech-lead, architect, implementer, tester, documenter) + 15 skills (assemble, sprint, quality-gate, context-sync, integration-test, code-review, retrospective, tdd, fix, timesheet, setup, dev-standards, onboard, changelog, autopilot) + project templates (memory, git-hooks, ci, keybindings, workspace, autopilot) for full SDLC coverage with Clean Architecture enforcement and autonomous iteration.",
+      "version": "3.1.0",
       "author": {
         "name": "Symbiotic Engineering"
       },
@@ -31,6 +31,8 @@
         "context-sync",
         "onboarding",
         "changelog",
+        "autopilot",
+        "continuous-iteration",
         "templates",
         "memory",
         "git-hooks"

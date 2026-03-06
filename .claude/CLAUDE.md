@@ -98,6 +98,7 @@ This project includes a multi-agent development system in `.claude/`:
 | `/context-sync` | Cross-session context synchronization | `/context-sync [save\|load\|team]` |
 | `/onboard` | Project analysis & memory bootstrapping | `/onboard [project-name]` |
 | `/changelog` | Auto changelog generation | `/changelog [since tag \| release level]` |
+| `/autopilot` | Continuous autonomous iteration | `/autopilot [init\|start\|stop\|status\|resume]` |
 | `dev-standards` | Coding standards (auto-loaded) | Automatic |
 
 ### Report Management
