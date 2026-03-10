@@ -103,7 +103,7 @@ graph TD
 **Gartner 預測**：2026 年底，40% 的企業應用將內建 AI Agent。
 
 這意味著：
-- **可觀測性工具市場爆發**（2025 年全球 LLM Observability 市場成長 300%）
+- **可觀測性工具市場爆發**（AI Observability 市場 CAGR 約 36%，持續高速成長）
 - **OpenTelemetry for LLMs** 成為事實標準
 - **成本優化成為核心競爭力**（token 成本是傳統 API 的 100-1000 倍）
 
@@ -189,8 +189,8 @@ graph LR
   - 支援 50+ LLM providers
 
 定價:
-  - 免費: 100K requests/月
-  - Pro: $20/月 (1M requests)
+  - 免費: 10K requests/月
+  - Growth: $20/月起
   - Enterprise: 客製
 
 適用場景:
@@ -223,8 +223,8 @@ graph LR
   - Multi-agent orchestration
 
 定價:
-  - 免費: 個人專案
-  - Team: $500/月起
+  - 免費: 個人專案 (有限制)
+  - Pro: 按用量計費
   - Enterprise: 客製
 
 適用場景:
@@ -305,10 +305,10 @@ graph LR
 | 平台 | 整合方式 | Multi-Agent | 成本追蹤 | 定價 | 適用場景 |
 |------|---------|------------|---------|------|---------|
 | **Langfuse** | SDK | ✅✅✅ | ✅✅ | 免費 (自託管) | 企業內部部署 |
-| **Helicone** | Proxy | ✅ | ✅✅✅ | $20/月起 | 快速整合、成本優先 |
-| **Braintrust** | SDK | ✅✅ | ✅✅ | $500/月起 | 評估 + Fine-tuning |
-| **Datadog** | Auto | ✅✅ | ✅ | 按 trace 計費 | 已用 Datadog 的企業 |
-| **Opik** | Plugin | ✅✅✅ | ✅✅ | $99/月起 | Claude Code 用戶 |
+| **Helicone** | Proxy | ✅ | ✅✅✅ | 免費 10K/月起 | 快速整合、成本優先 |
+| **Braintrust** | SDK | ✅✅ | ✅✅ | 免費 + 按用量 | 評估 + Fine-tuning |
+| **Datadog** | Auto | ✅✅ | ✅ | 按用量計費 | 已用 Datadog 的企業 |
+| **Opik** | Plugin | ✅✅✅ | ✅✅ | 免費 + Pro | Claude Code 用戶 |
 
 **選擇建議**：
 - **預算有限 + 技術能力強** → Langfuse (自託管)
@@ -353,43 +353,48 @@ graph TD
 
 ### 3.1 Hooks 事件追蹤
 
-Claude Code 提供 17 個生命週期事件（2026 Q1），可用於追蹤 Agent 行為。
+Claude Code 提供 **18 個**生命週期 hook 事件，可用於追蹤 Agent 行為。Hook 腳本透過 **stdin 接收 JSON 資料**，而非環境變數。
 
-**核心追蹤事件**：
+**與可觀測性最相關的事件**：
+
+| Hook 事件 | 觸發時機 | stdin JSON 包含 |
+|-----------|---------|----------------|
+| `PreToolUse` | 工具執行前 | `tool_name`, `tool_input` |
+| `PostToolUse` | 工具執行後 | `tool_name`, `tool_input`, `tool_output` |
+| `SubagentStart` | 子 Agent 啟動 | `agent_name`, `session_id` |
+| `SubagentStop` | 子 Agent 結束 | `agent_name`, `exit_reason` |
+| `TeammateIdle` | 隊友閒置 | `teammate_name` |
+| `Stop` | 會話結束 | `stop_reason`, `summary` |
+| `Notification` | 系統通知 | `title`, `message` |
+
+其他事件包括：`SessionStart`, `UserPromptSubmit`, `PermissionRequest`, `PostToolUseFailure`, `TaskCompleted`, `InstructionsLoaded`, `ConfigChange`, `WorktreeCreate`, `WorktreeRemove`, `PreCompact`, `SessionEnd`。
+
+**配置範例**：
 
 ```json
 {
   "hooks": {
     "PreToolUse": [{
-      "command": "python log_tool_use.py pre $TOOL_NAME $AGENT_ID",
+      "command": "python log_tool_use.py pre",
       "timeout": 5000
     }],
     "PostToolUse": [{
-      "command": "python log_tool_use.py post $TOOL_NAME $AGENT_ID $EXIT_CODE",
+      "command": "python log_tool_use.py post",
       "timeout": 5000
-    }],
-    "SubagentStart": [{
-      "command": "python log_agent_start.py $SUBAGENT_NAME $SESSION_ID",
-      "timeout": 3000
-    }],
-    "SubagentStop": [{
-      "command": "python log_agent_stop.py $SUBAGENT_NAME $SESSION_ID $EXIT_CODE",
-      "timeout": 3000
-    }],
-    "TeammateIdle": [{
-      "command": "python log_idle.py $TEAMMATE_ID $IDLE_DURATION",
-      "timeout": 2000
     }]
   }
 }
 ```
 
-**關鍵環境變數**：
-- `$AGENT_ID`：當前 Agent 的唯一識別
-- `$SESSION_ID`：會話 ID（用於關聯多個 Agent 調用）
-- `$TOOL_NAME`：工具名稱（Read / Write / Bash / Grep 等）
-- `$EXIT_CODE`：執行結果（0 = 成功，非 0 = 失敗）
-- `$TEAMMATE_ID`：隊友 Agent ID（Agent Teams 限定）
+**Hook 腳本接收 stdin JSON**：
+```python
+import sys, json
+data = json.load(sys.stdin)  # 從 stdin 讀取 JSON
+tool_name = data.get("tool_name")
+tool_input = data.get("tool_input")
+```
+
+> **注意**：Hook 資料透過 stdin JSON 傳遞，不是環境變數。這是 Claude Code hooks 的設計方式。
 
 ### 3.2 Opik Claude Code Plugin 自動 Instrumentation
 
@@ -500,15 +505,14 @@ graph TD
 }
 ```
 
-### 3.5 參考實作：Multi-Agent Observability (Disler)
+### 3.5 參考實作：Hooks + Langfuse 整合
 
-GitHub 開源專案：[disler/claude-code-hooks-multi-agent-observability](https://github.com/disler/claude-code-hooks-multi-agent-observability)
+**核心實作** — Hook 腳本從 stdin 讀取 JSON 並發送到 Langfuse：
 
-**核心實作**：
 ```python
-# multi_agent_trace.py
+# hook_trace.py — 作為 PostToolUse hook 使用
+import sys, json, os
 from langfuse import Langfuse
-import os
 
 langfuse = Langfuse(
     public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
@@ -516,21 +520,15 @@ langfuse = Langfuse(
     host=os.getenv("LANGFUSE_HOST", "http://localhost:3000")
 )
 
-def trace_tool_use(tool_name: str, agent_id: str, exit_code: int):
-    trace = langfuse.trace(
-        name=f"tool_use_{tool_name}",
-        metadata={
-            "agent_id": agent_id,
-            "tool": tool_name,
-            "exit_code": exit_code,
-            "session_id": os.getenv("SESSION_ID")
-        }
-    )
+# 從 stdin 讀取 hook 資料
+data = json.load(sys.stdin)
+tool_name = data.get("tool_name", "unknown")
 
-    if exit_code != 0:
-        trace.event(name="error", metadata={"exit_code": exit_code})
-
-    trace.flush()
+trace = langfuse.trace(
+    name=f"tool_use_{tool_name}",
+    metadata={"tool": tool_name, "input": str(data.get("tool_input", ""))[:200]}
+)
+trace.flush()
 ```
 
 **配置到 Hooks**：
@@ -538,12 +536,8 @@ def trace_tool_use(tool_name: str, agent_id: str, exit_code: int):
 {
   "hooks": {
     "PostToolUse": [{
-      "command": "python multi_agent_trace.py $TOOL_NAME $AGENT_ID $EXIT_CODE",
-      "env": {
-        "LANGFUSE_PUBLIC_KEY": "pk_xxx",
-        "LANGFUSE_SECRET_KEY": "sk_xxx",
-        "SESSION_ID": "{{session_id}}"
-      }
+      "command": "python hook_trace.py",
+      "timeout": 5000
     }]
   }
 }
@@ -559,36 +553,14 @@ def trace_tool_use(tool_name: str, agent_id: str, exit_code: int):
 
 **問題**：System prompt 通常 2000-5000 tokens，每次調用都計費。
 
-**解決方案**：Prompt Compression
-
-```python
-from langchain.prompts import PromptTemplate
-from langchain.llms import Anthropic
-
-# 原始 prompt (3500 tokens)
-original_prompt = """
-You are a senior software architect with 15 years of experience...
-[3000 words of detailed instructions]
-"""
-
-# 壓縮後 (800 tokens)
-compressed_prompt = """
-Role: Senior Architect (15y exp)
-Task: Design clean architecture
-Rules: DDD, SOLID, 3-layer
-Output: Mermaid diagram + ADR
-"""
-
-# 節省: (3500 - 800) * $0.003 per 1K tokens = $0.0081 per call
-```
+**解決方案**：將冗長的 prompt 精簡為結構化關鍵字格式，可從 3500 tokens 壓縮到 800 tokens（節省 ~77%）。
 
 **工具**：
-- [LLMLingua](https://github.com/microsoft/LLMLingua)：Microsoft 開源，可壓縮 50-70%
-- [PromptCompress](https://github.com/rohan-paul/PromptCompress)：GPT-4 輔助壓縮
+- [LLMLingua](https://github.com/microsoft/LLMLingua)：Microsoft 開源，可自動壓縮 50-70%
 
 #### 4.1.2 System Prompt Caching (Anthropic API)
 
-Anthropic 在 2024 Q4 推出 **Prompt Caching**，可將 system prompt 快取 5 分鐘。
+Anthropic 在 2024 年 8 月推出 **Prompt Caching** (Beta)，可將 system prompt 快取 5 分鐘。
 
 ```python
 import anthropic
@@ -630,30 +602,7 @@ response2 = client.messages.create(
 
 **問題**：Context 累積導致 token 用量爆炸。
 
-**解決方案**：滾動窗口 + 摘要
-
-```python
-class ContextManager:
-    def __init__(self, max_tokens=8000):
-        self.max_tokens = max_tokens
-        self.messages = []
-
-    def add_message(self, role: str, content: str):
-        self.messages.append({"role": role, "content": content})
-
-        # 超過上限時，壓縮舊消息
-        if self.estimate_tokens() > self.max_tokens:
-            self.compress_old_messages()
-
-    def compress_old_messages(self):
-        # 保留最近 3 輪對話，舊的用摘要替換
-        if len(self.messages) > 6:
-            old_messages = self.messages[:-6]
-            summary = self.summarize(old_messages)
-            self.messages = [
-                {"role": "system", "content": f"Previous context: {summary}"}
-            ] + self.messages[-6:]
-```
+**解決方案**：滾動窗口 + 摘要 — 保留最近 3 輪對話，舊的用 LLM 摘要替換。Claude Code 自身也使用類似的自動壓縮機制。
 
 ---
 
@@ -681,99 +630,22 @@ graph TD
 
 **適用場景**：完全相同的 prompt（如 help 命令、常見問題）
 
-```python
-import redis
-import hashlib
-
-redis_client = redis.Redis(host='localhost', port=6379, db=0)
-
-def get_cached_response(prompt: str):
-    cache_key = hashlib.sha256(prompt.encode()).hexdigest()
-    cached = redis_client.get(cache_key)
-    if cached:
-        return cached.decode()
-    return None
-
-def cache_response(prompt: str, response: str, ttl=3600):
-    cache_key = hashlib.sha256(prompt.encode()).hexdigest()
-    redis_client.setex(cache_key, ttl, response)
-```
-
-**節省**：命中率 10-20%，節省 100% LLM 成本。
+**實作**：用 Redis + SHA-256 hash 作為 cache key，TTL 1 小時。
+- 命中率 10-20%，命中時節省 100% LLM 成本。
 
 #### 4.2.2 Semantic Caching
 
 **適用場景**：語義相似的 prompt（如「如何設計用戶服務」vs「用戶服務架構設計」）
 
-```python
-from sentence_transformers import SentenceTransformer
-import numpy as np
-
-model = SentenceTransformer('all-MiniLM-L6-v2')
-embeddings_cache = {}
-
-def semantic_cache_lookup(prompt: str, threshold=0.90):
-    prompt_embedding = model.encode(prompt)
-
-    for cached_prompt, cached_response in embeddings_cache.items():
-        cached_embedding = model.encode(cached_prompt)
-        similarity = np.dot(prompt_embedding, cached_embedding) / (
-            np.linalg.norm(prompt_embedding) * np.linalg.norm(cached_embedding)
-        )
-
-        if similarity >= threshold:
-            return cached_response
-
-    return None
-```
-
-**閾值設定**：
-- 0.95：極嚴格（僅幾乎完全相同）
-- 0.90：嚴格（推薦）
-- 0.85：寬鬆（可能誤判）
-
-**節省**：命中率 5-15%，節省 100% LLM 成本。
+**實作**：用 Sentence Transformers (`all-MiniLM-L6-v2`) 計算 embedding 相似度，閾值 0.90。
+- 命中率 5-15%，命中時節省 100% LLM 成本。
+- 開源方案：[GPTCache](https://github.com/zilliztech/GPTCache)
 
 #### 4.2.3 Prompt Caching (API 層級)
 
-前面已介紹 Anthropic Prompt Caching，這裡補充 Azure Managed Redis 整合。
+前面已介紹 Anthropic Prompt Caching，快取命中時 system prompt 費用降 90%。
 
-**Azure Redis + Semantic Cache 實作**：
-
-```python
-from azure.identity import DefaultAzureCredential
-from azure.keyvault.secrets import SecretClient
-import redis
-
-# 從 Key Vault 取得 Redis 連線字串
-credential = DefaultAzureCredential()
-vault_url = "https://my-vault.vault.azure.net/"
-secret_client = SecretClient(vault_url=vault_url, credential=credential)
-
-redis_connection_string = secret_client.get_secret("redis-connection-string").value
-
-redis_client = redis.from_url(redis_connection_string, decode_responses=True)
-
-# 與前面的 semantic cache 整合
-def get_or_create_response(prompt: str):
-    # 1. Exact match
-    exact = get_cached_response(prompt)
-    if exact:
-        return exact
-
-    # 2. Semantic cache
-    semantic = semantic_cache_lookup(prompt)
-    if semantic:
-        return semantic
-
-    # 3. LLM call with prompt caching
-    response = call_llm_with_cache(prompt)
-
-    # 4. Cache the response
-    cache_response(prompt, response)
-
-    return response
-```
+**三層快取整合流程**：Exact Match → Semantic Cache → Prompt Cache → Full LLM Call
 
 ---
 
@@ -783,113 +655,21 @@ def get_or_create_response(prompt: str):
 
 **概念**：每秒補充 N 個 tokens，超過容量時拒絕請求。
 
-```python
-import time
-from threading import Lock
+| Agent | Bucket 容量 | 補充率 (tokens/s) | 設計理由 |
+|-------|-----------|------------------|---------|
+| Tech Lead | 5,000 | 500 | 主要是協調，調用量低 |
+| Architect | 3,000 | 300 | 設計階段，調用量低 |
+| Implementer | 10,000 | 1,000 | 編碼任務，調用量高 |
+| Tester | 8,000 | 800 | 測試分析需較多 tokens |
+| Documenter | 5,000 | 500 | 文件生成，中等調用量 |
 
-class TokenBucket:
-    def __init__(self, capacity: int, refill_rate: int):
-        self.capacity = capacity
-        self.tokens = capacity
-        self.refill_rate = refill_rate  # tokens per second
-        self.last_refill = time.time()
-        self.lock = Lock()
+#### 4.3.2 Circuit Breaker 模式
 
-    def consume(self, tokens: int) -> bool:
-        with self.lock:
-            self._refill()
-            if self.tokens >= tokens:
-                self.tokens -= tokens
-                return True
-            return False
+**概念**：連續失敗 N 次後暫停調用（OPEN 狀態），避免浪費成本。timeout 後進入 HALF_OPEN 試探性恢復。
 
-    def _refill(self):
-        now = time.time()
-        elapsed = now - self.last_refill
-        refill = int(elapsed * self.refill_rate)
-        self.tokens = min(self.capacity, self.tokens + refill)
-        self.last_refill = now
+三態：`CLOSED`（正常）→ `OPEN`（斷路）→ `HALF_OPEN`（試探）→ `CLOSED`
 
-# 使用
-bucket = TokenBucket(capacity=10000, refill_rate=1000)  # 每秒補充 1000 tokens
-
-if bucket.consume(500):
-    response = call_llm(prompt)
-else:
-    raise RateLimitError("Token bucket exhausted")
-```
-
-#### 4.3.2 Per-Agent Rate Limiting
-
-**場景**：Implementer Agent 不小心進入無限循環，不斷呼叫 LLM。
-
-**解決方案**：每個 Agent 獨立的 rate limiter。
-
-```python
-agent_buckets = {
-    "tech-lead": TokenBucket(capacity=5000, refill_rate=500),
-    "architect": TokenBucket(capacity=3000, refill_rate=300),
-    "implementer": TokenBucket(capacity=10000, refill_rate=1000),
-    "tester": TokenBucket(capacity=8000, refill_rate=800),
-    "documenter": TokenBucket(capacity=5000, refill_rate=500),
-}
-
-def rate_limited_llm_call(agent_id: str, prompt: str):
-    estimated_tokens = len(prompt.split()) * 1.3  # 粗估
-
-    if not agent_buckets[agent_id].consume(int(estimated_tokens)):
-        raise RateLimitError(f"Agent {agent_id} exceeded rate limit")
-
-    return call_llm(prompt)
-```
-
-#### 4.3.3 Circuit Breaker 模式
-
-**概念**：連續失敗後暫停調用，避免浪費成本。
-
-```python
-class CircuitBreaker:
-    def __init__(self, failure_threshold=5, timeout=60):
-        self.failure_threshold = failure_threshold
-        self.timeout = timeout
-        self.failures = 0
-        self.state = "CLOSED"  # CLOSED / OPEN / HALF_OPEN
-        self.last_failure_time = None
-
-    def call(self, func, *args, **kwargs):
-        if self.state == "OPEN":
-            if time.time() - self.last_failure_time > self.timeout:
-                self.state = "HALF_OPEN"
-            else:
-                raise CircuitBreakerOpenError("Circuit is open")
-
-        try:
-            result = func(*args, **kwargs)
-            self.on_success()
-            return result
-        except Exception as e:
-            self.on_failure()
-            raise e
-
-    def on_success(self):
-        self.failures = 0
-        self.state = "CLOSED"
-
-    def on_failure(self):
-        self.failures += 1
-        self.last_failure_time = time.time()
-        if self.failures >= self.failure_threshold:
-            self.state = "OPEN"
-
-# 使用
-breaker = CircuitBreaker(failure_threshold=5, timeout=60)
-
-try:
-    response = breaker.call(call_llm, prompt)
-except CircuitBreakerOpenError:
-    # 等待修復，或降級到更便宜的模型
-    response = call_cheaper_model(prompt)
-```
+失敗時自動降級到更便宜的模型（如 Opus → Sonnet → Haiku）。
 
 ---
 
@@ -901,8 +681,8 @@ except CircuitBreakerOpenError:
 |---------|------|---------------------|-----------|
 | **複雜推理** | Opus 4.6 | $15 input / $75 output | Tech Lead, Architect |
 | **一般開發** | Sonnet 4.5 | $3 input / $15 output | Implementer, Tester |
-| **文件生成** | Sonnet 4.0 | $3 input / $15 output | Documenter |
-| **簡單任務** | Haiku 4.0 | $0.25 input / $1.25 output | 資料處理、日誌分析 |
+| **文件生成** | Sonnet 4.5 | $3 input / $15 output | Documenter |
+| **簡單任務** | Haiku 4.5 | $0.25 input / $1.25 output | 資料處理、日誌分析 |
 
 **Agent Army 配置**：
 
@@ -926,8 +706,8 @@ except CircuitBreakerOpenError:
       "rationale": "測試分析需要中等推理"
     },
     "documenter": {
-      "model": "claude-sonnet-4-0",
-      "rationale": "文件生成不需最新模型"
+      "model": "claude-sonnet-4-5",
+      "rationale": "文件生成平衡品質與成本"
     }
   }
 }
@@ -942,56 +722,17 @@ except CircuitBreakerOpenError:
 
 ### 4.5 成本追蹤實作
 
-#### 4.5.1 MCP Gateway 成本追蹤
+#### 4.5.1 Gateway 層成本追蹤
 
-**概念**：在 MCP Gateway 層攔截所有 LLM 調用，自動計算成本。
+**概念**：在 Gateway 層攔截所有 LLM 調用，用 `response.usage.input_tokens` / `output_tokens` 乘以定價自動計算成本。
 
-```python
-from anthropic import Anthropic
-import logging
+**定價參考（2026 Q1 Anthropic API）**：
 
-class CostTrackingGateway:
-    def __init__(self):
-        self.client = Anthropic(api_key="sk_xxx")
-        self.cost_log = []
-
-        self.pricing = {
-            "claude-opus-4-6": {"input": 0.015, "output": 0.075},
-            "claude-sonnet-4-5": {"input": 0.003, "output": 0.015},
-            "claude-haiku-4-0": {"input": 0.00025, "output": 0.00125},
-        }
-
-    def create_message(self, model: str, messages: list, **kwargs):
-        response = self.client.messages.create(
-            model=model,
-            messages=messages,
-            **kwargs
-        )
-
-        # 計算成本
-        input_tokens = response.usage.input_tokens
-        output_tokens = response.usage.output_tokens
-
-        input_cost = (input_tokens / 1_000_000) * self.pricing[model]["input"]
-        output_cost = (output_tokens / 1_000_000) * self.pricing[model]["output"]
-        total_cost = input_cost + output_cost
-
-        # 記錄
-        self.cost_log.append({
-            "model": model,
-            "input_tokens": input_tokens,
-            "output_tokens": output_tokens,
-            "cost": total_cost,
-            "timestamp": time.time()
-        })
-
-        return response
-
-    def get_total_cost(self):
-        return sum(log["cost"] for log in self.cost_log)
-
-gateway = CostTrackingGateway()
-```
+| 模型 | Input (per 1M) | Output (per 1M) |
+|------|----------------|-----------------|
+| Opus 4.6 | $15 | $75 |
+| Sonnet 4.5 | $3 | $15 |
+| Haiku 4.5 | $0.25 | $1.25 |
 
 #### 4.5.2 Helicone Cost Dashboard
 
@@ -1027,63 +768,7 @@ response = client.messages.create(
 
 #### 4.5.3 自建成本追蹤
 
-**資料庫 Schema**：
-
-```sql
-CREATE TABLE llm_calls (
-    id SERIAL PRIMARY KEY,
-    timestamp TIMESTAMP DEFAULT NOW(),
-    agent_id VARCHAR(50),
-    model VARCHAR(50),
-    input_tokens INT,
-    output_tokens INT,
-    cost_usd DECIMAL(10, 6),
-    session_id VARCHAR(100),
-    task_description TEXT
-);
-
-CREATE INDEX idx_agent_timestamp ON llm_calls(agent_id, timestamp);
-CREATE INDEX idx_session ON llm_calls(session_id);
-```
-
-**日報產生**：
-
-```python
-import psycopg2
-from datetime import datetime, timedelta
-
-def generate_daily_cost_report():
-    conn = psycopg2.connect("dbname=observability user=postgres")
-    cur = conn.cursor()
-
-    yesterday = datetime.now() - timedelta(days=1)
-
-    cur.execute("""
-        SELECT
-            agent_id,
-            SUM(input_tokens) as total_input,
-            SUM(output_tokens) as total_output,
-            SUM(cost_usd) as total_cost,
-            COUNT(*) as call_count
-        FROM llm_calls
-        WHERE timestamp >= %s
-        GROUP BY agent_id
-        ORDER BY total_cost DESC
-    """, (yesterday,))
-
-    report = "# Daily Cost Report\n\n"
-    report += "| Agent | Input Tokens | Output Tokens | Cost | Calls |\n"
-    report += "|-------|--------------|---------------|------|-------|\n"
-
-    for row in cur.fetchall():
-        agent_id, input_tok, output_tok, cost, calls = row
-        report += f"| {agent_id} | {input_tok:,} | {output_tok:,} | ${cost:.4f} | {calls} |\n"
-
-    cur.close()
-    conn.close()
-
-    return report
-```
+**核心 Schema**：`llm_calls` 表記錄 `agent_id`, `model`, `input_tokens`, `output_tokens`, `cost_usd`, `session_id`, `timestamp`。搭配 `GROUP BY agent_id` 的日報查詢即可產生每日成本報告。
 
 ---
 
@@ -1116,59 +801,11 @@ stateDiagram-v2
     end note
 ```
 
-**進階實作**（加上降級策略）：
-
-```python
-class AdaptiveCircuitBreaker:
-    def __init__(self,
-                 failure_threshold=5,
-                 timeout=60,
-                 fallback_model="claude-haiku-4-0"):
-        self.failure_threshold = failure_threshold
-        self.timeout = timeout
-        self.fallback_model = fallback_model
-        self.failures = 0
-        self.state = "CLOSED"
-        self.last_failure_time = None
-
-    def call(self, model: str, prompt: str):
-        if self.state == "OPEN":
-            if time.time() - self.last_failure_time > self.timeout:
-                self.state = "HALF_OPEN"
-                # 試探性恢復：用更便宜的模型測試
-                return self._try_fallback(prompt)
-            else:
-                # 直接降級
-                return self._call_fallback(prompt)
-
-        try:
-            response = call_llm(model, prompt)
-            self.on_success()
-            return response
-        except Exception as e:
-            self.on_failure()
-            return self._call_fallback(prompt)
-
-    def _call_fallback(self, prompt: str):
-        # 降級到更便宜 / 更穩定的模型
-        return call_llm(self.fallback_model, prompt)
-
-    def _try_fallback(self, prompt: str):
-        try:
-            response = self._call_fallback(prompt)
-            self.state = "CLOSED"
-            self.failures = 0
-            return response
-        except Exception:
-            self.state = "OPEN"
-            raise
-```
+**進階策略**：`AdaptiveCircuitBreaker` — OPEN 狀態時自動降級到更便宜的 fallback 模型（如 `claude-haiku-4-5`），HALF_OPEN 時試探性恢復。結合模型分層策略可同時保證可用性和成本控制。
 
 ---
 
 ### 5.2 Graph-Based Self-Healing Tool Routing
-
-**論文來源**：*Self-Healing Multi-Agent Systems via Dynamic Tool Graph* (2026)
 
 **核心概念**：Agent 遇到錯誤時，自動重新路由到備用工具。
 
@@ -1191,46 +828,10 @@ graph LR
     style G fill:#87CEEB
 ```
 
-**實作**：
-
-```python
-class ToolRouter:
-    def __init__(self):
-        self.tool_graph = {
-            "database_query": {
-                "primary": "postgresql_direct",
-                "fallback": ["redis_cache", "read_replica"],
-                "error_mapping": {
-                    "timeout": "redis_cache",
-                    "connection_error": "read_replica"
-                }
-            },
-            "llm_call": {
-                "primary": "claude-opus-4-6",
-                "fallback": ["claude-sonnet-4-5", "claude-haiku-4-0"],
-                "error_mapping": {
-                    "rate_limit": "claude-sonnet-4-5",
-                    "overload": "claude-haiku-4-0"
-                }
-            }
-        }
-
-    def execute(self, tool_name: str, *args, **kwargs):
-        tool_config = self.tool_graph[tool_name]
-        primary_tool = tool_config["primary"]
-
-        try:
-            return self._call_tool(primary_tool, *args, **kwargs)
-        except Exception as e:
-            error_type = self._classify_error(e)
-            fallback_tool = tool_config["error_mapping"].get(error_type)
-
-            if fallback_tool:
-                logging.warning(f"Primary tool {primary_tool} failed, routing to {fallback_tool}")
-                return self._call_tool(fallback_tool, *args, **kwargs)
-            else:
-                raise
-```
+**實作要點**：
+- 建立 Tool Graph：每個工具定義 primary + fallback + error_mapping
+- 例如 `llm_call`：primary=`opus` → rate_limit 時降級 `sonnet` → overload 時降級 `haiku`
+- 錯誤分類後自動路由到對應的 fallback tool
 
 ---
 
@@ -1262,42 +863,11 @@ graph TD
 4. **Remediation Agent**：執行修復動作（重啟服務、擴容、回滾）
 5. **Verification Agent**：驗證修復是否成功
 
-**實作框架**：
-
-```python
-class SREAgentSystem:
-    def __init__(self):
-        self.monitor = MonitorAgent()
-        self.diagnostics = DiagnosticsAgent()
-        self.incident = IncidentAgent()
-        self.remediation = RemediationAgent()
-        self.verification = VerificationAgent()
-
-    def handle_alert(self, alert: dict):
-        severity = self.monitor.classify(alert)
-
-        if severity == "critical":
-            incident_id = self.incident.create(alert)
-            diagnosis = self.diagnostics.analyze(alert)
-            fix = self.remediation.suggest_fix(diagnosis)
-
-            if fix.is_auto_fixable():
-                self.remediation.execute(fix)
-                success = self.verification.verify(fix)
-
-                if success:
-                    self.incident.close(incident_id)
-                else:
-                    self.incident.escalate_to_human(incident_id)
-            else:
-                self.incident.escalate_to_human(incident_id)
-```
+**流程**：Alert → 分類嚴重性 → 診斷 → 自動修復（如可行）→ 驗證 → 關閉 or 升級人工。
 
 ---
 
 ### 5.4 Autonomous Peer Recovery
-
-**論文來源**：*Autonomous Agent Peer Recovery in Distributed Systems* (2026-02-21)
 
 **核心概念**：Agent A 檢測到 Agent B 失敗，自動接管 B 的任務。
 
@@ -1319,98 +889,12 @@ sequenceDiagram
     Tester->>TechLead: Task X completed
 ```
 
-**實作**：
-
-```python
-class PeerRecoverySystem:
-    def __init__(self):
-        self.heartbeats = {}
-        self.task_assignments = {}
-
-    def register_heartbeat(self, agent_id: str):
-        self.heartbeats[agent_id] = time.time()
-
-    def check_health(self):
-        now = time.time()
-        for agent_id, last_heartbeat in self.heartbeats.items():
-            if now - last_heartbeat > 60:  # 60s timeout
-                self.trigger_recovery(agent_id)
-
-    def trigger_recovery(self, failed_agent: str):
-        # 找到該 agent 的未完成任務
-        tasks = self.task_assignments.get(failed_agent, [])
-
-        # 重新分配給備用 agent
-        for task in tasks:
-            backup_agent = self.find_backup_agent(failed_agent)
-            self.reassign_task(task, backup_agent)
-            logging.warning(f"Task {task} reassigned from {failed_agent} to {backup_agent}")
-
-    def find_backup_agent(self, failed_agent: str):
-        # 根據角色找備用 agent
-        role = self.get_agent_role(failed_agent)
-        available_agents = self.get_agents_by_role(role)
-        return available_agents[0]  # 簡化版，實際需要負載平衡
-```
+**實作要點**：
+- Heartbeat 機制：每 30s 發送心跳，60s 無回應視為失敗
+- 任務重分配：Monitor 檢測到失敗後，Tech Lead 將任務重新分配給同角色的備用 Agent
+- 在 Claude Code Agent Teams 中，SubagentStop hook 可用於檢測子 Agent 異常退出
 
 ---
-
-### 5.5 Data Pipeline Self-Healing
-
-**場景**：資料處理 pipeline 中某個 stage 失敗，自動重試 + 降級。
-
-```mermaid
-graph LR
-    A[Raw Data] --> B[Stage 1: Fetch]
-    B --> C[Stage 2: Transform]
-    C --> D[Stage 3: Load]
-
-    B -.->|Retry 3x| B
-    B -.->|Still Fail| E[Fallback: Cached Data]
-    E --> C
-
-    C -.->|Retry 3x| C
-    C -.->|Still Fail| F[Partial Transform]
-    F --> D
-
-    D -.->|Retry 3x| D
-    D -.->|Still Fail| G[Alert Human]
-```
-
-**實作**：
-
-```python
-from tenacity import retry, stop_after_attempt, wait_exponential
-
-class SelfHealingPipeline:
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-    def stage_fetch(self, source: str):
-        try:
-            return fetch_from_api(source)
-        except Exception as e:
-            logging.error(f"Fetch failed: {e}")
-            # 降級：使用快取資料
-            return self.fetch_from_cache(source)
-
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-    def stage_transform(self, data: dict):
-        try:
-            return full_transform(data)
-        except Exception as e:
-            logging.error(f"Transform failed: {e}")
-            # 降級：部分轉換
-            return partial_transform(data)
-
-    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-    def stage_load(self, data: dict):
-        try:
-            return load_to_database(data)
-        except Exception as e:
-            logging.error(f"Load failed: {e}")
-            # 無法降級，告警人類
-            send_alert("Pipeline load stage failed", severity="high")
-            raise
-```
 
 ---
 
@@ -1467,37 +951,7 @@ class SelfHealingPipeline:
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**實作 (Streamlit)**：
-
-```python
-import streamlit as st
-import time
-
-st.set_page_config(page_title="Agent Army Monitor", layout="wide")
-
-st.title("Agent Army - Real-time Overview")
-
-col1, col2, col3, col4 = st.columns(4)
-col1.metric("Active Agents", "5/5")
-col2.metric("Active Tasks", "3")
-col3.metric("Total Cost Today", "$12.45", delta="+$2.10")
-col4.metric("Avg Task Time", "8m 32s", delta="-1m 15s")
-
-st.header("Agent Status")
-agent_status = get_agent_status()  # 從 DB 查詢
-
-for agent in agent_status:
-    status_icon = "🟢" if agent["status"] == "WORKING" else "⚪"
-    st.write(f"{status_icon} **{agent['name']}** - {agent['status']} - {agent['current_task']}")
-
-st.header("Recent Alerts")
-alerts = get_recent_alerts()
-for alert in alerts:
-    if alert["severity"] == "warning":
-        st.warning(f"⚠️ {alert['message']}")
-    else:
-        st.success(f"✅ {alert['message']}")
-```
+**推薦實作工具**：Streamlit（快速原型）或 Grafana（生產環境）。
 
 ---
 
@@ -1523,28 +977,7 @@ xychart-beta
 | Tester | $1.80 | $12.30 | $48.20 | 20% |
 | Documenter | $0.45 | $3.50 | $15.50 | 6% |
 
-**實作 (Plotly)**：
-
-```python
-import plotly.express as px
-import pandas as pd
-
-# 查詢每日成本
-df = pd.read_sql("""
-    SELECT
-        DATE(timestamp) as date,
-        agent_id,
-        SUM(cost_usd) as cost
-    FROM llm_calls
-    WHERE timestamp >= NOW() - INTERVAL '7 days'
-    GROUP BY DATE(timestamp), agent_id
-""", conn)
-
-fig = px.bar(df, x="date", y="cost", color="agent_id",
-             title="Daily Cost by Agent",
-             labels={"cost": "Cost (USD)", "date": "Date"})
-fig.show()
-```
+**視覺化工具**：Plotly / Grafana / Streamlit 皆可，從 `llm_calls` 表 GROUP BY `agent_id`, `DATE(timestamp)` 繪製。
 
 ---
 
@@ -1606,66 +1039,11 @@ Doc      0.1s   0.4s   0.5s   0.2s   2.1s
 | **Cache Hit Rate Low** | 快取命中率 < 20% | Info | Email |
 | **LLM API Down** | 連續 3 次調用失敗 | Critical | Slack + PagerDuty |
 
-#### 6.3.2 Slack Webhook 整合
+#### 6.3.2 告警整合
 
-```python
-import requests
-import json
+**Slack Webhook**：用 `requests.post(webhook_url, json=payload)` 發送，按 severity 設定顏色（info=綠、warning=橙、critical=紅）。
 
-def send_slack_alert(message: str, severity: str = "warning"):
-    webhook_url = "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-
-    color = {
-        "info": "#36a64f",
-        "warning": "#ff9800",
-        "critical": "#f44336"
-    }.get(severity, "#808080")
-
-    payload = {
-        "attachments": [{
-            "color": color,
-            "title": f"Agent Army Alert - {severity.upper()}",
-            "text": message,
-            "footer": "Agent Observability System",
-            "ts": int(time.time())
-        }]
-    }
-
-    requests.post(webhook_url, json=payload)
-
-# 使用
-send_slack_alert("Implementer consumed 60K tokens in 5 minutes", severity="warning")
-```
-
-#### 6.3.3 告警抑制 (Alert Suppression)
-
-**問題**：同一問題短時間內觸發多次告警，造成告警疲勞。
-
-**解決方案**：去重 + 合併
-
-```python
-class AlertManager:
-    def __init__(self):
-        self.recent_alerts = {}
-        self.suppression_window = 300  # 5 分鐘
-
-    def send_alert(self, alert_key: str, message: str, severity: str):
-        now = time.time()
-
-        # 檢查是否在抑制窗口內
-        if alert_key in self.recent_alerts:
-            last_sent = self.recent_alerts[alert_key]
-            if now - last_sent < self.suppression_window:
-                logging.info(f"Alert {alert_key} suppressed (within {self.suppression_window}s)")
-                return
-
-        # 發送告警
-        send_slack_alert(message, severity)
-        self.recent_alerts[alert_key] = now
-
-alert_mgr = AlertManager()
-alert_mgr.send_alert("implementer_high_token", "Implementer high token usage", "warning")
-```
+**告警抑制**：同一 alert_key 在 5 分鐘內不重複發送，避免告警疲勞。
 
 ---
 
@@ -1675,100 +1053,46 @@ alert_mgr.send_alert("implementer_high_token", "Implementer high token usage", "
 
 **目標**：收集所有 Tool Use 事件並記錄到資料庫。
 
-**檔案結構**：
-
-```
-.claude/
-├── settings.json
-└── hooks/
-    ├── log_tool_use.py
-    ├── log_agent_lifecycle.py
-    └── requirements.txt
-```
-
 **settings.json**：
 
 ```json
 {
   "hooks": {
-    "PreToolUse": [{
-      "command": "python .claude/hooks/log_tool_use.py pre $TOOL_NAME $AGENT_ID",
-      "timeout": 5000
-    }],
     "PostToolUse": [{
-      "command": "python .claude/hooks/log_tool_use.py post $TOOL_NAME $AGENT_ID $EXIT_CODE",
+      "command": "python .claude/hooks/log_tool_use.py",
       "timeout": 5000
-    }],
-    "SubagentStart": [{
-      "command": "python .claude/hooks/log_agent_lifecycle.py start $SUBAGENT_NAME $SESSION_ID",
-      "timeout": 3000
     }],
     "SubagentStop": [{
-      "command": "python .claude/hooks/log_agent_lifecycle.py stop $SUBAGENT_NAME $SESSION_ID $EXIT_CODE",
+      "command": "python .claude/hooks/log_agent_stop.py",
       "timeout": 3000
     }]
   }
 }
 ```
 
-**log_tool_use.py**：
+**log_tool_use.py** — 從 stdin 讀取 JSON：
 
 ```python
 #!/usr/bin/env python3
-import sys
-import psycopg2
+import sys, json, os, psycopg2
 from datetime import datetime
-import os
 
-def log_tool_use(phase: str, tool_name: str, agent_id: str, exit_code: int = None):
-    conn = psycopg2.connect(
-        dbname=os.getenv("DB_NAME", "observability"),
-        user=os.getenv("DB_USER", "postgres"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST", "localhost")
-    )
-    cur = conn.cursor()
+data = json.load(sys.stdin)
 
-    cur.execute("""
-        INSERT INTO tool_events (timestamp, phase, tool_name, agent_id, exit_code, session_id)
-        VALUES (%s, %s, %s, %s, %s, %s)
-    """, (
-        datetime.utcnow(),
-        phase,
-        tool_name,
-        agent_id,
-        exit_code,
-        os.getenv("CLAUDE_SESSION_ID", "unknown")
-    ))
-
-    conn.commit()
-    cur.close()
-    conn.close()
-
-if __name__ == "__main__":
-    phase = sys.argv[1]  # pre / post
-    tool_name = sys.argv[2]
-    agent_id = sys.argv[3]
-    exit_code = int(sys.argv[4]) if len(sys.argv) > 4 else None
-
-    log_tool_use(phase, tool_name, agent_id, exit_code)
-```
-
-**資料庫 Schema**：
-
-```sql
-CREATE TABLE tool_events (
-    id SERIAL PRIMARY KEY,
-    timestamp TIMESTAMP,
-    phase VARCHAR(10),  -- pre / post
-    tool_name VARCHAR(50),
-    agent_id VARCHAR(50),
-    exit_code INT,
-    session_id VARCHAR(100)
-);
-
-CREATE INDEX idx_session ON tool_events(session_id);
-CREATE INDEX idx_agent_time ON tool_events(agent_id, timestamp);
+conn = psycopg2.connect(
+    dbname=os.getenv("DB_NAME", "observability"),
+    user=os.getenv("DB_USER", "postgres"),
+    password=os.getenv("DB_PASSWORD"),
+    host=os.getenv("DB_HOST", "localhost")
+)
+cur = conn.cursor()
+cur.execute("""
+    INSERT INTO tool_events (timestamp, tool_name, tool_input_summary)
+    VALUES (%s, %s, %s)
+""", (datetime.utcnow(), data.get("tool_name"), str(data.get("tool_input", ""))[:500]))
+conn.commit()
+cur.close()
+conn.close()
 ```
 
 ---
@@ -1875,217 +1199,31 @@ def implement_feature(feature_description: str):
 
 ### 7.3 Step 3: 成本追蹤 Dashboard
 
-**Flask 後端**：
+可使用以下方案建立成本追蹤 Dashboard：
 
-```python
-from flask import Flask, jsonify
-import psycopg2
+| 方案 | 適用場景 | 開發量 |
+|------|---------|--------|
+| **Helicone** | 零開發，改 API endpoint 即可 | 5 分鐘 |
+| **Langfuse Dashboard** | 自託管，內建 UI | 30 分鐘 |
+| **Streamlit + SQL** | 需要客製化圖表 | 2-4 小時 |
+| **Flask/React 自建** | 完全客製化需求 | 1-2 天 |
 
-app = Flask(__name__)
-
-@app.route('/api/cost/daily')
-def get_daily_cost():
-    conn = psycopg2.connect("dbname=observability user=postgres")
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT
-            DATE(timestamp) as date,
-            agent_id,
-            SUM(cost_usd) as cost
-        FROM llm_calls
-        WHERE timestamp >= NOW() - INTERVAL '30 days'
-        GROUP BY DATE(timestamp), agent_id
-        ORDER BY date
-    """)
-
-    result = []
-    for row in cur.fetchall():
-        result.append({
-            "date": row[0].isoformat(),
-            "agent": row[1],
-            "cost": float(row[2])
-        })
-
-    return jsonify(result)
-
-@app.route('/api/cost/summary')
-def get_cost_summary():
-    conn = psycopg2.connect("dbname=observability user=postgres")
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT
-            SUM(CASE WHEN timestamp >= CURRENT_DATE THEN cost_usd ELSE 0 END) as today,
-            SUM(CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '7 days' THEN cost_usd ELSE 0 END) as week,
-            SUM(CASE WHEN timestamp >= CURRENT_DATE - INTERVAL '30 days' THEN cost_usd ELSE 0 END) as month
-        FROM llm_calls
-    """)
-
-    row = cur.fetchone()
-    return jsonify({
-        "today": float(row[0] or 0),
-        "this_week": float(row[1] or 0),
-        "this_month": float(row[2] or 0)
-    })
-
-if __name__ == '__main__':
-    app.run(port=5000)
-```
-
-**React 前端**：
-
-```jsx
-import React, { useEffect, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-
-function CostDashboard() {
-  const [data, setData] = useState([]);
-  const [summary, setSummary] = useState({});
-
-  useEffect(() => {
-    fetch('/api/cost/daily')
-      .then(res => res.json())
-      .then(setData);
-
-    fetch('/api/cost/summary')
-      .then(res => res.json())
-      .then(setSummary);
-  }, []);
-
-  return (
-    <div>
-      <h1>Agent Army Cost Dashboard</h1>
-
-      <div className="summary">
-        <div>Today: ${summary.today?.toFixed(2)}</div>
-        <div>This Week: ${summary.this_week?.toFixed(2)}</div>
-        <div>This Month: ${summary.this_month?.toFixed(2)}</div>
-      </div>
-
-      <LineChart width={800} height={400} data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
-        <Legend />
-        <Line type="monotone" dataKey="cost" stroke="#8884d8" />
-      </LineChart>
-    </div>
-  );
-}
-
-export default CostDashboard;
-```
+**推薦路徑**：先用 Helicone 或 Langfuse 內建 Dashboard 快速上線，有客製需求再用 Streamlit 擴展。
 
 ---
 
 ### 7.4 Step 4: 告警設定
 
-**監控腳本 (monitor.py)**：
+**監控腳本核心檢查項**：
 
-```python
-import psycopg2
-import time
-from datetime import datetime, timedelta
+| 檢查項 | SQL 條件 | 告警嚴重性 |
+|--------|---------|-----------|
+| Token 用量飆升 | `SUM(tokens) > 50K` in 5 min per agent | Warning |
+| 錯誤率過高 | `error_rate > 10%` 持續 5 min | Critical |
+| Agent 卡住 | 單一任務 > 30 min | Warning |
+| 日成本超限 | `SUM(cost_usd) > $50` today | Critical |
 
-def check_high_token_usage():
-    conn = psycopg2.connect("dbname=observability user=postgres")
-    cur = conn.cursor()
-
-    # 檢查過去 5 分鐘內每個 agent 的 token 使用量
-    cur.execute("""
-        SELECT
-            agent_id,
-            SUM(input_tokens + output_tokens) as total_tokens
-        FROM llm_calls
-        WHERE timestamp >= NOW() - INTERVAL '5 minutes'
-        GROUP BY agent_id
-        HAVING SUM(input_tokens + output_tokens) > 50000
-    """)
-
-    for row in cur.fetchall():
-        agent_id, total_tokens = row
-        send_slack_alert(
-            f"⚠️ {agent_id} consumed {total_tokens:,} tokens in 5 minutes",
-            severity="warning"
-        )
-
-    cur.close()
-    conn.close()
-
-def check_error_rate():
-    conn = psycopg2.connect("dbname=observability user=postgres")
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT
-            agent_id,
-            COUNT(*) as total_calls,
-            SUM(CASE WHEN exit_code != 0 THEN 1 ELSE 0 END) as errors
-        FROM tool_events
-        WHERE timestamp >= NOW() - INTERVAL '5 minutes'
-        AND phase = 'post'
-        GROUP BY agent_id
-    """)
-
-    for row in cur.fetchall():
-        agent_id, total, errors = row
-        error_rate = errors / total if total > 0 else 0
-
-        if error_rate > 0.1:  # 10% 錯誤率
-            send_slack_alert(
-                f"🚨 {agent_id} error rate: {error_rate*100:.1f}% ({errors}/{total} calls)",
-                severity="critical"
-            )
-
-    cur.close()
-    conn.close()
-
-def check_stuck_agents():
-    conn = psycopg2.connect("dbname=observability user=postgres")
-    cur = conn.cursor()
-
-    # 檢查是否有 agent 執行超過 30 分鐘
-    cur.execute("""
-        SELECT
-            agent_id,
-            MIN(timestamp) as start_time
-        FROM tool_events
-        WHERE phase = 'pre'
-        AND timestamp >= NOW() - INTERVAL '30 minutes'
-        GROUP BY agent_id, session_id
-        HAVING MIN(timestamp) < NOW() - INTERVAL '30 minutes'
-    """)
-
-    for row in cur.fetchall():
-        agent_id, start_time = row
-        send_slack_alert(
-            f"⏰ {agent_id} has been working for over 30 minutes (started at {start_time})",
-            severity="warning"
-        )
-
-    cur.close()
-    conn.close()
-
-# 每分鐘執行一次
-while True:
-    try:
-        check_high_token_usage()
-        check_error_rate()
-        check_stuck_agents()
-    except Exception as e:
-        print(f"Monitor error: {e}")
-
-    time.sleep(60)
-```
-
-**執行監控**：
-
-```bash
-# 背景執行
-nohup python monitor.py > monitor.log 2>&1 &
-```
+**實作方式**：用 cron 或背景 Python 腳本每分鐘查詢 DB，超過閾值時發送 Slack webhook 告警。搭配 `AlertManager` 做告警去重（5 分鐘抑制窗口）避免告警疲勞。
 
 ---
 
@@ -2150,183 +1288,29 @@ graph TD
 
 ### 8.1 品質評估
 
-**Reasoning Coherence (推理連貫性)**：
+| 評估維度 | 方法 | 指標 |
+|---------|------|------|
+| **Reasoning Coherence** | LLM-as-a-Judge（用 Opus 評分 0-1） | 目標 ≥ 0.8 |
+| **Tool Selection Accuracy** | 比對選擇的工具 vs 預期工具 | 目標 ≥ 90% |
+| **Task Completion Rate** | `completed / total` (過去 7 天) | 目標 ≥ 90% |
 
-```python
-def evaluate_reasoning_coherence(agent_output: str) -> float:
-    """
-    評估 agent 的推理是否連貫
-    使用 LLM-as-a-Judge 模式
-    """
-    judge_prompt = f"""
-    Evaluate the reasoning coherence of the following agent output.
-    Rate from 0.0 (incoherent) to 1.0 (perfectly coherent).
-
-    Agent Output:
-    {agent_output}
-
-    Provide only a numerical score.
-    """
-
-    response = call_llm("claude-opus-4-6", judge_prompt)
-    score = float(response.content.strip())
-    return score
-```
-
-**Tool Selection Accuracy (工具選擇準確度)**：
-
-```python
-def evaluate_tool_selection(task: str, selected_tool: str, expected_tool: str) -> float:
-    """
-    評估 agent 是否選擇了正確的工具
-    """
-    if selected_tool == expected_tool:
-        return 1.0
-
-    # 使用語義相似度評估（如 Read vs Grep 可能都合理）
-    similarity = calculate_semantic_similarity(selected_tool, expected_tool)
-    return similarity
-```
-
-**Task Completion Success Rate**：
-
-```python
-def calculate_task_completion_rate():
-    conn = psycopg2.connect("dbname=observability user=postgres")
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT
-            COUNT(*) as total_tasks,
-            SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed
-        FROM tasks
-        WHERE created_at >= NOW() - INTERVAL '7 days'
-    """)
-
-    row = cur.fetchone()
-    total, completed = row
-
-    return completed / total if total > 0 else 0
-```
+> **LLM-as-a-Judge** 參考：Zheng et al., *Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena* (2023)
 
 ---
 
 ### 8.2 效能評估
 
-**Latency (延遲)**：
-
-| Metric | Target | Formula |
-|--------|--------|---------|
-| p50 | < 3s | 中位數 |
-| p95 | < 10s | 95% 的請求 |
-| p99 | < 20s | 99% 的請求 |
-
-**Throughput (吞吐量)**：
-
-```python
-def calculate_throughput():
-    conn = psycopg2.connect("dbname=observability user=postgres")
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT
-            DATE_TRUNC('hour', timestamp) as hour,
-            COUNT(*) as tasks_completed
-        FROM tasks
-        WHERE status = 'completed'
-        AND created_at >= NOW() - INTERVAL '24 hours'
-        GROUP BY hour
-        ORDER BY hour
-    """)
-
-    results = cur.fetchall()
-    avg_throughput = sum(r[1] for r in results) / len(results) if results else 0
-
-    return avg_throughput  # tasks per hour
-```
-
-**Resource Utilization (資源利用率)**：
-
-| Resource | Metric | Target |
-|----------|--------|--------|
-| CPU | Agent 處理時間 / 總時間 | 60-80% |
-| Memory | Peak memory usage | < 2GB per agent |
-| Tokens | Tokens per task | < 50K |
-| Cost | Cost per feature | < $0.50 |
+| 指標 | Target | 說明 |
+|------|--------|------|
+| **p50 Latency** | < 3s | 中位數延遲 |
+| **p95 Latency** | < 10s | 長尾延遲 |
+| **p99 Latency** | < 20s | 極端延遲 |
+| **Throughput** | 依場景而定 | tasks/hour (GROUP BY hour 統計) |
+| **Agent Utilization** | 60-80% | 處理時間 / 總時間 |
+| **Tokens per Task** | < 50K | 單任務 token 消耗 |
+| **Cost per Feature** | < $0.50 | 單 feature 成本 |
 
 ---
-
-### 8.3 責任評估 (Responsible AI)
-
-**Safety (安全性)**：
-
-```python
-def evaluate_safety(agent_output: str) -> dict:
-    """
-    評估 agent 輸出是否安全（不含惡意程式碼）
-    """
-    safety_checks = {
-        "no_malicious_code": not contains_malicious_patterns(agent_output),
-        "no_secrets_leaked": not contains_secrets(agent_output),
-        "no_sql_injection": not contains_sql_injection(agent_output),
-    }
-
-    return {
-        "safe": all(safety_checks.values()),
-        "details": safety_checks
-    }
-```
-
-**Toxicity (毒性)**：
-
-```python
-from detoxify import Detoxify
-
-def evaluate_toxicity(text: str) -> float:
-    model = Detoxify('original')
-    results = model.predict(text)
-    return results['toxicity']  # 0.0 - 1.0
-```
-
-**Bias Mitigation (偏見緩解)**：
-
-```python
-def evaluate_bias(agent_output: str, protected_attributes: list) -> dict:
-    """
-    評估 agent 是否對特定屬性有偏見
-    protected_attributes: ['gender', 'race', 'age', ...]
-    """
-    bias_scores = {}
-
-    for attribute in protected_attributes:
-        # 使用預訓練的 bias 檢測模型
-        score = detect_bias_for_attribute(agent_output, attribute)
-        bias_scores[attribute] = score
-
-    return bias_scores
-```
-
-**Hallucination Detection (幻覺檢測)**：
-
-```python
-def detect_hallucination(agent_output: str, ground_truth: str) -> float:
-    """
-    使用 NLI (Natural Language Inference) 檢測幻覺
-    """
-    from transformers import pipeline
-
-    nli = pipeline("text-classification", model="microsoft/deberta-large-mnli")
-
-    result = nli(f"{ground_truth} [SEP] {agent_output}")
-
-    # entailment (正確) / neutral / contradiction (幻覺)
-    if result[0]['label'] == 'CONTRADICTION':
-        return 1.0  # 確定是幻覺
-    elif result[0]['label'] == 'ENTAILMENT':
-        return 0.0  # 正確
-    else:
-        return 0.5  # 無法確定
-```
 
 ---
 
@@ -2404,23 +1388,20 @@ timeline
 
 | 專案 | 描述 | GitHub |
 |------|------|--------|
-| **Claude Code Hooks Multi-Agent Observability** | Disler 的 Agent Teams 追蹤實作 | [disler/claude-code-hooks-multi-agent-observability](https://github.com/disler/claude-code-hooks-multi-agent-observability) |
 | **LLMLingua** | Microsoft 的 prompt 壓縮工具 | [microsoft/LLMLingua](https://github.com/microsoft/LLMLingua) |
 | **OpenTelemetry for LLMs** | LLM 可觀測性標準 | [open-telemetry/opentelemetry-python](https://github.com/open-telemetry/opentelemetry-python) |
-| **Detoxify** | 文字毒性檢測 | [unitaryai/detoxify](https://github.com/unitaryai/detoxify) |
 | **Phoenix (Arize AI)** | 開源 LLM 可觀測性平台 | [Arize-ai/phoenix](https://github.com/Arize-ai/phoenix) |
+| **Langfuse** | 開源 LLM 可觀測性 + tracing | [langfuse/langfuse](https://github.com/langfuse/langfuse) |
 
 ---
 
-### 9.3 學術論文
+### 9.3 學術論文與標準
 
-| 論文 | 年份 | 主題 |
+| 資源 | 年份 | 主題 |
 |------|------|------|
-| *Self-Healing Multi-Agent Systems via Dynamic Tool Graph* | 2026 | Graph-based tool routing |
-| *Autonomous Agent Peer Recovery in Distributed Systems* | 2026-02 | Peer recovery patterns |
-| *LLM-as-a-Judge: Evaluating AI Agent Reasoning* | 2025 | 評估框架 |
-| *Semantic Caching for Large Language Models* | 2025 | Semantic cache 演算法 |
-| *OpenTelemetry for LLM Observability* | 2024 | 可觀測性標準 |
+| *Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena* (Zheng et al.) | 2023 | LLM 評估框架 |
+| *GPTCache: An Open-Source Semantic Cache for LLM Applications* | 2023 | Semantic cache |
+| *OpenTelemetry Semantic Conventions for Gen AI* | 2024+ | LLM 可觀測性標準 (進行中) |
 
 ---
 
