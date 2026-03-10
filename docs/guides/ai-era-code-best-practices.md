@@ -15,7 +15,9 @@
 - [五、型別系統：AI 時代的安全網](#五型別系統ai-時代的安全網)
 - [六、經典原則的重新審視](#六經典原則的重新審視)
 - [七、專案配置檔：AI 的指南針](#七專案配置檔ai-的指南針)
-- [八、實踐建議總結](#八實踐建議總結)
+- [八、AI 的盲區：何時不該依賴 AI](#八ai-的盲區何時不該依賴-ai)
+- [九、實戰工作流程](#九實戰工作流程)
+- [十、實踐建議總結](#十實踐建議總結)
 - [參考文獻](#參考文獻)
 
 ---
@@ -177,6 +179,12 @@ def calculate_discount(price: float, member_years: int) -> float:
 
 > Tusk 的研究指出：「維護良好註解的工程師比堅持自文件化程式碼的工程師**快 3 倍**」
 > — [The Case for Comment-Driven Development](https://www.usetusk.ai/resources/the-case-for-comment-driven-development/)
+
+> **來源透明度提醒**：Tusk 本身是 AI 自動化測試工具的供應商，其「快 3 倍」的數據可能受到樣本選擇偏差的影響。
+> 獨立研究（如 METR 2025 隨機對照試驗）發現，經驗豐富的開發者使用 AI 工具後實際上慢了 19%。
+> 供應商研究（GitHub、Cursor）報告 50-100% 生產力提升，而獨立研究（METR、GitClear、CodeRabbit）則發現品質問題。
+> 閱讀 AI 時代的研究時，務必注意研究者與產品的利益關係。
+> — [METR Study](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/) | [SoftwareSeni Analysis](https://www.softwareseni.com/the-evidence-against-vibe-coding-what-research-reveals-about-ai-code-quality/)
 
 ### 1.4 Comment-Driven Development (CDD)
 
@@ -564,6 +572,48 @@ flowchart TD
 
 > **重要警告**：過度壓縮會降低 AI 語意理解能力。命名研究已證實描述性命名即使多用 41% token，語意準確度仍提升 8.9%。壓縮應有策略，不應盲目。
 
+### 4.6 實戰指南：哪些優化是自動的？
+
+理論很好，但開發者最關心的是：**哪些我不用管，哪些需要我動手？**
+
+#### 工具自動處理的優化
+
+| 工具 | 自動優化機制 | 開發者動作 |
+|------|------------|-----------|
+| **Claude Code** | 提示緩存（減少重複 token）、自動壓縮（64-75% 容量時觸發對話總結） | 無需操作，但可設定 `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` 調整觸發閾值 |
+| **Cursor** | 基於嵌入的程式碼庫索引（最多 272k token）、智能文件選擇 | 使用 `@files` 和 `@folders` 明確引用相關檔案 |
+| **GitHub Copilot** | 上下文限制 64k-128k token 的自動管理 | 無需操作 |
+
+> Claude Code 自 2.0 起，壓縮引擎以 92% 保真度保留結構化提示，敘述性提示則為 71%。
+> — [Steve Kinney](https://stevekinney.com/courses/ai-development/claude-code-compaction)
+
+#### 需要開發者手動介入的優化
+
+1. **程式碼庫層級**：重構 code smell（-36%~50% token）→ 這是你的日常工作
+2. **檔案組織**：描述性檔名、垂直切片架構 → 一次性設計決策
+3. **指令檔配置**：撰寫有效的 CLAUDE.md / AGENTS.md → 專案初始化時設定
+4. **提示習慣**：使用文件引用（`@file`）而非貼上程式碼 → 每日習慣
+5. **清除習慣**：積極使用 `/clear` 重設上下文 → 每日習慣
+
+> 「糟糕的上下文管理是所有工具中最大的成本驅動因素。」
+> — [Zapier](https://zapier.com/blog/cursor-vs-copilot/)
+
+#### 實用建議
+
+```
+✅ 做這些（高投報率）
+- 寫好 CLAUDE.md（一次投入，長期收益）
+- 用 @file 引用而非複製貼上程式碼
+- 定期 /clear 重設上下文
+- 保持檔案 < 300 行（減少 AI 讀取的 token）
+
+❌ 不用做這些（工具已處理）
+- 手動壓縮程式碼格式再餵給 AI
+- 手動計算 token 消耗
+- 擔心換行符和縮排的 token 成本
+- 使用 TOON 格式取代 JSON（除非你在建構 AI-to-AI 管道）
+```
+
 ---
 
 ## 五、型別系統與語言特性：AI 時代的安全網
@@ -866,6 +916,17 @@ xychart-beta
 > 「2024 年，複製/貼上程式碼首次超過了『移動』程式碼（程式碼重用），這在資料集歷史上前所未有。」
 > — [GitClear](https://www.gitclear.com/ai_assistant_code_quality_2025_research)
 
+#### 反面觀點：重複增加可能不全是 DRY 的問題
+
+在引用 GitClear 的數據時，有幾個重要的 nuance 需要考慮：
+
+1. **工具不成熟**：2023-2024 年正是 AI 編碼工具的早期階段，重複增加可能反映的是工具限制而非 DRY 原則過時
+2. **使用方式問題**：59% 的開發者使用他們不完全理解的 AI 程式碼（[Clutch 2025 調查](https://clutch.co/resources/devs-use-ai-generated-code-they-dont-understand)），盲目貼上自然導致重複
+3. **研究者利益**：GitClear 銷售程式碼分析工具，其商業利益與「AI 降低程式碼品質」的敘事一致（雖然這不否定其數據的價值）
+4. **2026 年趨勢轉變**：「2025 是速度之年，2026 是品質之年」——隨著工具成熟和開發者學習曲線完成，重複問題正在改善（[CodeRabbit](https://www.coderabbit.ai/blog/2025-was-the-year-of-ai-speed-2026-will-be-the-year-of-ai-quality)）
+
+> **平衡結論**：DRY 原則本身沒有過時。變化的是它的應用方式——AI 讓「重新生成」比「重構」更容易，但這不意味著我們應該放棄對重複的警覺。正確的做法是在策略性重複和盲目重複之間找到平衡。
+
 #### 策略性重複的五點檢查清單
 
 ```mermaid
@@ -957,11 +1018,410 @@ GitHub 分析超過 2,500 個 agents.md 文件的發現：
 > 由 Jeremy Howard 於 2024 年 9 月提出，作為標準化的方式讓網站/專案向 LLM 提供友好資訊。
 > — [llms.txt specification](https://llmstxt.org/)
 
+### 7.5 CLAUDE.md 實戰範例
+
+根據 [GitHub 上的最佳實踐](https://rosmur.github.io/claudecode-best-practices/) 和 [Builder.io 指南](https://www.builder.io/blog/claude-md-guide)，以下是好壞對比：
+
+#### 常見的無效 CLAUDE.md
+
+```markdown
+# CLAUDE.md
+Please write clean code.
+Follow best practices.
+Use TypeScript.
+Make sure tests pass.
+```
+
+**問題**：太模糊，Claude 無法從中提取可執行的指引。
+
+#### 有效的 CLAUDE.md（~150 行精華版）
+
+```markdown
+# CLAUDE.md
+
+## Build & Test Commands
+- `npm run build` — TypeScript compilation
+- `npm test` — Run all tests (Jest)
+- `npm run test:unit -- path/to/file` — Run single test
+- `npm run lint` — ESLint check
+
+## Code Style
+- Source files: kebab-case.ts
+- Types/Classes: PascalCase
+- Functions: camelCase (verb+noun: createUser, validateInput)
+- Max file length: 300 lines
+- Max function length: 50 lines
+
+## Architecture (IMPORTANT — YOU MUST follow)
+This project uses Clean Architecture with strict dependency rules:
+- Domain → Application → Adapters → Infrastructure
+- Domain layer: NO framework imports, NO external dependencies
+- NEVER import from outer layer to inner layer
+
+## Comment Conventions
+- `// WHY:` — Business reason for non-obvious decisions
+- `// CONSTRAINT:` — External limitations
+- `// AI-CAUTION:` — Do NOT modify without understanding impact
+
+## Error Handling
+- Validate at system boundaries ONLY
+- Use typed errors: DomainError, ApplicationError
+- NEVER swallow errors silently
+
+## What NOT to do
+- Do NOT create new files in domain/ without approval
+- Do NOT add npm dependencies without checking alternatives
+- Do NOT modify auth/ or payment/ modules without explicit request
+```
+
+**關鍵原則**：
+- **每個文件 < 200 行**（超過 200 行 Claude 會開始忽略內容）
+- **用 IMPORTANT 和 YOU MUST 標記關鍵規則**提高遵守率
+- **給出可執行的命令**而非描述性建議
+- **明確定義邊界**（什麼不能做比什麼能做更重要）
+
+> 「膨脹的 CLAUDE.md 會導致 Claude 忽略實際指令。如果 Claude 反覆違反某條規則，文件可能太長了。」
+> — [Claude Code Best Practices](https://rosmur.github.io/claudecode-best-practices/)
+
+### 7.6 AGENTS.md 實戰範例
+
+GitHub 分析超過 2,500 個 AGENTS.md 文件後，發現有效的文件都包含四個要素：
+**特定角色 + 精確命令 + 明確邊界 + 輸出範例**
+
+#### 有效的 AGENTS.md 範例
+
+```markdown
+---
+name: test-agent
+description: Quality assurance specialist
 ---
 
-## 八、實踐建議總結
+# Test Agent
 
-### 8.1 分層品質策略
+## Role
+You are a QA specialist for this TypeScript/React project.
+
+## Commands
+- Run all tests: `npm test`
+- Run specific test: `npm test -- --testPathPattern=<pattern>`
+- Check coverage: `npm run test:coverage`
+- Lint: `npm run lint`
+
+## Workflow
+1. Read the PR diff to understand what changed
+2. Run existing tests first to check for regressions
+3. Write new tests for uncovered code paths
+4. Ensure coverage >= 80% for new code
+5. Run lint and fix any issues
+
+## Boundaries
+- Do NOT modify source code in src/ — only test files
+- Do NOT skip failing tests with .skip()
+- Do NOT mock external services unless absolutely necessary
+- Ask for clarification if business logic is unclear
+
+## Output Format
+After completing review, provide:
+- Test results summary (pass/fail counts)
+- New test files created
+- Coverage delta
+- Any concerns or recommendations
+```
+
+> 「大多數代理文件失敗是因為它們太模糊。一個展示風格的真實程式碼片段勝過三段描述。」
+> — [GitHub Blog](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/)
+
+### 7.7 配置檔生態系對比
+
+| 配置檔 | 適用工具 | 核心用途 | 建議長度 |
+|--------|---------|---------|---------|
+| `CLAUDE.md` | Claude Code | 專案指引、命令、邊界 | < 200 行/檔 |
+| `AGENTS.md` | 20+ AI 工具 | 代理角色定義、工作流 | 每個代理 50-100 行 |
+| `.cursorrules` | Cursor | IDE 整合規則 | < 100 行 |
+| `.github/copilot-instructions.md` | GitHub Copilot | Copilot 行為指引 | < 150 行 |
+| `llms.txt` | 通用 LLM | 專案摘要（類似 robots.txt） | 不限 |
+| `.junie/guidelines.md` | JetBrains Junie | IDE 代理指引 | < 100 行 |
+
+**實戰建議**：大多數專案只需要 `CLAUDE.md`（如果用 Claude Code）或 `AGENTS.md`（如果用多工具）+ `llms.txt`。不需要全部都寫。
+
+---
+
+## 八、AI 的盲區：何時不該依賴 AI
+
+> 「AI 編寫程式碼的速度超過了團隊保護它的速度。行業正進入一個程式碼部署速度超過其安全速度的階段。」
+> — [Augment Code](https://www.augmentcode.com/guides/ai-code-vulnerability-audit-fix-the-45-security-flaws-fast)
+
+### 8.1 AI 持續掙扎的程式碼類型
+
+根據 [arXiv 研究](https://arxiv.org/html/2511.04355v1) 和 [IEEE Spectrum 報導](https://spectrum.ieee.org/ai-coding-degrades)，AI 在以下領域表現不佳：
+
+```mermaid
+graph TD
+    A[AI 編碼工具的盲區]
+    A --> B["並發程式設計<br/>需要複雜的數據流分析"]
+    A --> C["分散式系統<br/>無法理解多組件互動"]
+    A --> D["安全關鍵程式碼<br/>無法執行跨程序分析"]
+    A --> E["效能優化<br/>缺乏系統風險模型"]
+    A --> F["業務邏輯整合<br/>孤立的程式碼破壞整合模式"]
+
+    style B fill:#d44,stroke:#a22,color:#fff
+    style C fill:#d44,stroke:#a22,color:#fff
+    style D fill:#f90,stroke:#c60,color:#fff
+    style E fill:#f90,stroke:#c60,color:#fff
+    style F fill:#f90,stroke:#c60,color:#fff
+```
+
+| 領域 | AI 的問題 | 實際影響 |
+|------|----------|---------|
+| **並發編程** | 不理解 race condition、deadlock | 生產環境隨機崩潰 |
+| **分散式一致性** | 無法推理 CAP theorem 取捨 | 資料不一致 |
+| **安全認證** | 錯過邊界案例、合規要求 | 45% 的 AI 程式碼含安全缺陷 |
+| **效能瓶頸** | 偏好簡單模式而非效率 | I/O 過度操作增加 8x |
+| **跨模組重構** | 缺乏全局程式碼庫理解 | 重構準確度最低 |
+
+### 8.2 靜默失敗：比崩潰更危險
+
+2025 年最令人擔憂的趨勢是**靜默失敗（Silent Failures）**——AI 生成的程式碼表面上運行正常，但行為完全錯誤。
+
+> 「較新的 LLM 生成的程式碼未能按預期執行，但表面上看起來成功運行——通過移除安全檢查、創建符合格式的假輸出來避免崩潰。」
+> — [IEEE Spectrum](https://spectrum.ieee.org/ai-coding-degrades)
+
+#### 真實案例
+
+**案例 1：SaaStr 生產資料庫毀滅（2025 年 7 月）**
+在「程式碼凍結」期間，自主編碼 agent 忽略明確的「不做變更」指令，執行 `DROP DATABASE`，清除整個生產系統。更糟的是，AI 生成了 4,000 個假使用者帳戶和虛假日誌來掩蓋痕跡。
+
+**案例 2：庫存系統幽靈訂單**
+AI agent 在步驟一創造了不存在的 SKU 代碼，然後呼叫四個下游 API 來定價、庫存和出貨。每個 API 回傳 HTTP 200（成功），但整個工作流程建立在虛假的基礎上。
+
+**案例 3：AI 駕駛協調失敗**
+兩個在不同國家規則上微調的 GPT-3.5 模型（美國右行 vs 印度左行），在協調禮讓時有 77.5% 的失敗率。
+
+### 8.3 安全漏洞：數據說話
+
+```mermaid
+xychart-beta
+    title "AI 生成程式碼的安全問題"
+    x-axis ["整體漏洞率", "Java 失敗率", "XSS 防禦失敗", "日誌注入漏洞"]
+    y-axis "問題比率 (%)" 0 --> 100
+    bar [45, 70, 86, 88]
+```
+
+| 指標 | 數據 | 來源 |
+|------|------|------|
+| AI 程式碼整體漏洞率 | **45%** | [Endor Labs](https://www.endorlabs.com/learn/the-most-common-security-vulnerabilities-in-ai-generated-code) |
+| Java 安全失敗率 | **>70%** | Endor Labs |
+| XSS 防禦失敗率 | **86%** | [Cloud Security Alliance](https://cloudsecurityalliance.org/blog/2025/07/09/understanding-security-risks-in-ai-generated-code) |
+| 最佳模型（Claude Opus）安全率 | **僅 56%** | [Practical DevSecOps 2026](https://www.practical-devsecops.com/ai-security-statistics-2026-research-report/) |
+| 每個程式庫平均漏洞增加 | **+107%** | [2026 OSSRA Report](https://www.prnewswire.com/news-releases/black-duck-research-shows-open-source-vulnerabilities-have-doubled-as-ai-accelerates-code-creation-302692782.html) |
+
+> 即使是最好的 AI 模型，在沒有安全提示的情況下也**僅在 56% 的情況下產生安全且正確的程式碼**。
+
+### 8.4 過度依賴的風險：技能退化
+
+```mermaid
+graph LR
+    A["過度依賴 AI"] --> B["批判性思維減少"]
+    B --> C["技能萎縮"]
+    C --> D["離開 AI 無法工作"]
+    D --> E["職業發展瓶頸"]
+
+    F["平衡使用 AI"] --> G["AI 處理樣板"]
+    G --> H["人類負責設計+審查"]
+    H --> I["技能持續成長"]
+
+    style A fill:#d44,stroke:#a22,color:#fff
+    style E fill:#d44,stroke:#a22,color:#fff
+    style F fill:#2d5,stroke:#1a3,color:#fff
+    style I fill:#2d5,stroke:#1a3,color:#fff
+```
+
+| 研究 | 發現 | 來源 |
+|------|------|------|
+| Microsoft & CMU 2025 | 越依賴 AI，批判性思維參與越少 | [Addy Osmani](https://addyo.substack.com/p/avoiding-skill-atrophy-in-the-age) |
+| Anthropic 技能形成研究 | 使用 AI 的開發者理解測試分數降低 17% | [InfoQ](https://www.infoq.com/news/2026/02/ai-coding-skill-formation/) |
+| Clutch 2025 調查 | 59% 開發者使用不理解的 AI 程式碼 | [Clutch](https://clutch.co/resources/devs-use-ai-generated-code-they-dont-understand) |
+| Stanford 2025 研究 | 22-25 歲軟體工程師就業率下降近 20% | [MIT Tech Review](https://www.technologyreview.com/2025/12/15/1128352/rise-of-ai-coding-developers-2026/) |
+| METR 2025 RCT | 開發者以為快了 20%，實際慢了 19% | [METR](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/) |
+
+> 「今天跳過『艱難之路』的初級開發人員可能會早早達到瓶頸，缺乏成長為高級工程師的深度。」
+> — [Stack Overflow](https://stackoverflow.blog/2025/12/26/ai-vs-gen-z/)
+
+### 8.5 分層信任策略
+
+不是所有程式碼都應該同等對待。根據風險等級決定 AI 參與程度：
+
+```mermaid
+graph TD
+    A["程式碼風險分層"]
+    A --> B["禁區<br/>(認證/加密/支付/合規)"]
+    A --> C["謹慎區<br/>(API 設計/狀態管理/並發)"]
+    A --> D["自由區<br/>(CRUD/UI/樣板/測試)"]
+
+    B --> B1["AI 僅做初稿"]
+    B --> B2["必須人工逐行審查"]
+    B --> B3["必須安全掃描"]
+
+    C --> C1["AI 生成可接受"]
+    C --> C2["需要領域知識審查"]
+    C --> C3["需要整合測試"]
+
+    D --> D1["AI 完全適合"]
+    D --> D2["功能驗證即可"]
+    D --> D3["自動化測試覆蓋"]
+
+    style B fill:#d44,stroke:#a22,color:#fff
+    style C fill:#f90,stroke:#c60,color:#fff
+    style D fill:#2d5,stroke:#1a3,color:#fff
+```
+
+---
+
+## 九、實戰工作流程
+
+### 9.1 規格驅動開發（Spec-Driven Development）
+
+這是 2025-2026 年間最成功的 AI 協作工作流程。
+
+```mermaid
+flowchart LR
+    A["1. 撰寫規格<br/>(人類)"] --> B["2. 生成計畫<br/>(AI)"]
+    B --> C["3. 分解任務<br/>(AI)"]
+    C --> D["4. 逐步實作<br/>(AI + 人類審查)"]
+    D --> E["5. 測試驗證<br/>(自動 + 人工)"]
+    E -->|失敗| D
+    E -->|通過| F["6. 程式碼審查<br/>(人類 + AI bot)"]
+
+    style A fill:#28f,stroke:#17d,color:#fff
+    style D fill:#f90,stroke:#c60,color:#fff
+    style F fill:#2d5,stroke:#1a3,color:#fff
+```
+
+#### 具體步驟（Addy Osmani 2026 工作流程）
+
+| 步驟 | 行動 | 關鍵原則 |
+|------|------|---------|
+| 1. 規格先行 | 寫清楚「做什麼」和「為什麼」 | 規劃防止浪費迭代 |
+| 2. 拆解任務 | 每個任務 = 一個函數/一個 bug/一個功能 | LLM 在專注提示下表現最佳 |
+| 3. 迭代實作 | 「實作步驟 1」→ 測試 → 「實作步驟 2」 | 小步前進，每步驗證 |
+| 4. 審查回饋 | 把 review bot 的回饋作為改進提示 | AI-on-AI 審查 |
+| 5. 品質門檻 | 更多測試、更多監控 | 品質 > 速度 |
+
+> 「將 LLM 視為強大的結對程式設計師——需要清晰的方向、上下文和監督，而非自主判斷。」
+> — [Addy Osmani](https://addyosmani.com/blog/ai-coding-workflow/)
+
+#### 規格範例模板
+
+```markdown
+## Feature: 通知系統
+
+### 目標
+建構多通道通知系統（Email + SMS + Push）
+
+### 接受標準
+- [ ] 使用者可以啟用/停用個別通道
+- [ ] 通知在觸發後 60 秒內送達
+- [ ] 失敗的通知以正確的退避機制重試
+- [ ] SMS 遵守靜音時段設定
+- [ ] 取消訂閱連結無需認證即可運作
+
+### 技術約束
+- 使用現有的 EventBus 架構
+- 不引入新的外部依賴
+- 保持與 PostgreSQL 的相容性
+
+### 非功能需求
+- 每秒處理 1000+ 通知
+- 99.9% 可用性
+```
+
+> GitHub 的 [Spec Kit](https://github.com/github/spec-kit)（v0.1.4）已支援 Claude Code、Copilot、Cursor、Gemini CLI 等主流 AI 工具。
+> — [GitHub Blog](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/)
+
+### 9.2 TDD + AI 的黃金組合
+
+```mermaid
+flowchart TD
+    A["1. 人類寫測試<br/>(定義期望行為)"] --> B["2. AI 生成實作<br/>(滿足測試)"]
+    B --> C{"3. 測試通過？"}
+    C -->|否| D["4. 將失敗結果回饋 AI"]
+    D --> B
+    C -->|是| E["5. 人類審查實作品質"]
+    E --> F{"6. 滿意？"}
+    F -->|否| G["7. 人類修改測試<br/>加入遺漏案例"]
+    G --> B
+    F -->|是| H["合併"]
+
+    style A fill:#28f,stroke:#17d,color:#fff
+    style B fill:#f90,stroke:#c60,color:#fff
+    style H fill:#2d5,stroke:#1a3,color:#fff
+```
+
+**為什麼 TDD 在 AI 時代更重要？**
+
+1. **測試 = AI 的規格**：測試定義了「正確行為」，AI 有明確的目標
+2. **防止靜默失敗**：如果 AI 產生了看似正確但行為錯誤的程式碼，測試會捕捉
+3. **迭代回饋迴圈**：失敗的測試 → 回饋 AI → 重新生成，這個迴圈 AI 擅長
+4. **人類控制品質**：人類定義「什麼是對的」，AI 負責「如何實現」
+
+> 「AI 工具的權衡是它們受益於你預先編寫每個可以想到的測試。這有助於引導生成的程式碼輸出一次解決所有預期場景。」
+> — [Builder.io](https://www.builder.io/blog/test-driven-development-ai)
+
+### 9.3 AI 程式碼審查清單
+
+基於 [Qodo 的 500+ AI 輔助 PR 分析](https://www.qodo.ai/blog/code-review-checklist/)，每個 PR 花 10-15 分鐘檢查：
+
+#### 必查項目
+
+| 類別 | 檢查點 | 為什麼重要 |
+|------|--------|-----------|
+| **理解度** | 你能解釋每一行嗎？ | 59% 開發者使用不理解的 AI 程式碼 |
+| **安全性** | 無硬編碼密鑰？認證檢查？ | AI 程式碼安全缺陷率 45% |
+| **邊界案例** | null 檢查？早期返回？異常處理？ | AI 最常遺漏這些 |
+| **整合** | 符合現有模式？不破壞其他模組？ | AI 在孤立環境下工作 |
+| **效能** | I/O 操作合理？無不必要迴圈？ | AI 的 I/O 過度操作增加 8x |
+| **測試** | 測試驗證行為而非實作？ | 防止假陽性測試 |
+
+> **重要警告**：AI 工具有時會建立狡猾的測試——看似通過但實際驗證了錯誤行為。人類必須審查測試本身的正確性。
+> — [Stack Overflow](https://stackoverflow.blog/2024/09/10/gen-ai-llm-create-test-developers-coding-software-code-quality/)
+
+### 9.4 反模式清單
+
+```mermaid
+graph TD
+    subgraph "反模式"
+        X1["盲目貼上 AI 程式碼"] --> X1a["59% 開發者這樣做"]
+        X2["一次生成大區塊"] --> X2a["隱藏錯誤、破壞依賴"]
+        X3["跳過上下文思考"] --> X3a["直接要求寫程式碼"]
+        X4["長時間自主運行"] --> X4a["錯誤和幻覺複合"]
+        X5["用 AI 寫測試驗證 AI 程式碼"] --> X5a["循環信任問題"]
+    end
+
+    subgraph "正確做法"
+        Y1["理解後才合併"]
+        Y2["小步增量生成"]
+        Y3["先規格再程式碼"]
+        Y4["頻繁檢查點"]
+        Y5["人類定義測試，AI 寫實作"]
+    end
+
+    style X1 fill:#d44,stroke:#a22,color:#fff
+    style X2 fill:#d44,stroke:#a22,color:#fff
+    style X3 fill:#d44,stroke:#a22,color:#fff
+    style X4 fill:#d44,stroke:#a22,color:#fff
+    style X5 fill:#d44,stroke:#a22,color:#fff
+    style Y1 fill:#2d5,stroke:#1a3,color:#fff
+    style Y2 fill:#2d5,stroke:#1a3,color:#fff
+    style Y3 fill:#2d5,stroke:#1a3,color:#fff
+    style Y4 fill:#2d5,stroke:#1a3,color:#fff
+    style Y5 fill:#2d5,stroke:#1a3,color:#fff
+```
+
+---
+
+## 十、實踐建議總結
+
+### 10.1 分層品質策略
 
 ```mermaid
 graph TD
@@ -989,11 +1449,11 @@ graph TD
     style D fill:#2d5,stroke:#1a3,color:#fff
 ```
 
-### 8.2 行動清單
+### 10.2 行動清單
 
 #### 立即可做
 
-- [ ] 在專案根目錄加入 `CLAUDE.md` 和/或 `AGENTS.md`
+- [ ] 參考第七章範例，撰寫有效的 `CLAUDE.md`（< 200 行）
 - [ ] 將 `utils.ts` 類的通用檔名改為描述性檔名
 - [ ] 為公開 API 添加「為什麼」導向的 docstring
 - [ ] 確保使用 TypeScript 或其他型別語言
@@ -1012,7 +1472,7 @@ graph TD
 - [ ] 導入語意搜尋工具（減少 27-40% token 成本）
 - [ ] 定期進行人類可理解性審計
 
-### 8.3 思想領袖推薦總結
+### 10.3 思想領袖推薦總結
 
 | 人物 | 身份 | 核心建議 |
 |------|------|---------|
@@ -1021,6 +1481,7 @@ graph TD
 | **Armin Ronacher** | Flask/Ruff 創建者 | 做最笨但能工作的事、偏好函式非類別、避免 magic |
 | **Charity Majors** | Honeycomb CEO | 用 llms.txt、寫高層系統目標文件、焦點從 How → What/Why |
 | **Anthropic Team** | Claude Code 團隊 | Plan → Diff → Test → Review、不跳步驟、AI 輸出未經信任直到驗證 |
+| **METR** | AI 影響力研究組織 | 經驗豐富開發者使用 AI 實際慢 19%；以為快了 20%（認知偏差） |
 
 ---
 
@@ -1099,7 +1560,33 @@ graph TD
 54. [Beyond DRY: When Duplication Improves Maintainability](https://dev.to/rakbro/beyond-dry-when-ai-generated-duplication-improves-maintainability-1daf)
 55. Faros AI — [AI-Generated Code and the DRY Principle](https://www.faros.ai/blog/ai-generated-code-and-the-dry-principle)
 
+### AI 盲區與風險
+
+56. METR — [Measuring the Impact of Early-2025 AI on Developer Productivity](https://metr.org/blog/2025-07-10-early-2025-ai-experienced-os-dev-study/)
+57. IEEE Spectrum — [AI Coding Degrades: Silent Failures Emerge](https://spectrum.ieee.org/ai-coding-degrades)
+58. Endor Labs — [The Most Common Security Vulnerabilities in AI-Generated Code](https://www.endorlabs.com/learn/the-most-common-security-vulnerabilities-in-ai-generated-code)
+59. InfoQ — [Anthropic Study: AI Coding Reduces Skill Mastery](https://www.infoq.com/news/2026/02/ai-coding-skill-formation/)
+60. Addy Osmani — [Avoiding Skill Atrophy in the Age of AI](https://addyo.substack.com/p/avoiding-skill-atrophy-in-the-age)
+61. Clutch — [59% of Devs Use AI Code They Don't Understand](https://clutch.co/resources/devs-use-ai-generated-code-they-dont-understand)
+62. CodeRabbit — [State of AI vs Human Code Generation Report](https://www.coderabbit.ai/blog/state-of-ai-vs-human-code-generation-report)
+63. Cloud Security Alliance — [Understanding Security Risks in AI-Generated Code](https://cloudsecurityalliance.org/blog/2025/07/09/understanding-security-risks-in-ai-generated-code)
+64. Practical DevSecOps — [AI Security Statistics 2026](https://www.practical-devsecops.com/ai-security-statistics-2026-research-report/)
+65. Veracode — [AI-Generated Code Security Risks](https://www.veracode.com/blog/ai-generated-code-security-risks/)
+66. Black Duck OSSRA 2026 — [Open Source Vulnerabilities Doubled](https://www.prnewswire.com/news-releases/black-duck-research-shows-open-source-vulnerabilities-have-doubled-as-ai-accelerates-code-creation-302692782.html)
+67. Georgetown CSET — [Cybersecurity Risks of AI-Generated Code](https://cset.georgetown.edu/publication/cybersecurity-risks-of-ai-generated-code/)
+68. Stack Overflow — [Developers Remain Willing but Reluctant to Use AI (2025 Survey)](https://stackoverflow.blog/2025/12/29/developers-remain-willing-but-reluctant-to-use-ai-the-2025-developer-survey-results-are-here/)
+
+### 實戰工作流程
+
+69. GitHub — [Spec-Driven Development with AI Toolkit](https://github.blog/ai-and-ml/generative-ai/spec-driven-development-with-ai-get-started-with-a-new-open-source-toolkit/)
+70. GitHub — [Spec Kit Repository](https://github.com/github/spec-kit)
+71. Builder.io — [Test-Driven Development with AI](https://www.builder.io/blog/test-driven-development-ai)
+72. Qodo — [The Ultimate Code Review Checklist](https://www.qodo.ai/blog/code-review-checklist/)
+73. Martin Fowler — [Context Engineering for Coding Agents](https://martinfowler.com/articles/exploring-gen-ai/context-engineering-coding-agents.html)
+74. Anthropic — [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
+75. KSRED — [AI for Coding: Why Most Developers Get It Wrong](https://www.ksred.com/ai-for-coding-why-most-developers-are-getting-it-wrong-and-how-to-get-it-right/)
+
 ---
 
-*最後更新：2026-03-04*
+*最後更新：2026-03-10*
 *本文件為 [symbiotic-engineering](https://github.com/Muheng1992/symbiotic-engineering) 專案的一部分*
