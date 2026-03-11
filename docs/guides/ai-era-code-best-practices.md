@@ -20,6 +20,11 @@
 - [十、實踐建議總結](#十實踐建議總結)
 - [參考文獻](#參考文獻)
 
+> **閱讀導引**：本文約 1,500 行。如果時間有限：
+> - **10 分鐘**：讀[第七章（專案配置檔）](#七專案配置檔ai-的指南針) + [第十章（行動清單）](#十實踐建議總結)
+> - **30 分鐘**：加讀[第一章（註解）](#一註解策略的革命) + [第八章（AI 盲區）](#八ai-的盲區何時不該依賴-ai) + [第九章（工作流程）](#九實戰工作流程)
+> - **完整閱讀**：依序讀完，第二到六章提供研究數據支撐
+
 ---
 
 ## 引言：典範轉移
@@ -81,29 +86,31 @@ Thoughtworks Technology Radar 明確指出：
 
 ```mermaid
 graph LR
-    subgraph "傳統觀點 (Clean Code)"
-        A1["註解是失敗的標誌"] --> A2["好的程式碼不需要註解"]
-        A2 --> A3["自文件化程式碼至上"]
+    subgraph "Clean Code 的實際立場"
+        A1["壞註解不如不寫"] --> A2["好程式碼減少解釋性註解的需求"]
+        A2 --> A3["但仍推薦意圖/法律/TODO 註解"]
     end
 
-    subgraph "AI 時代觀點"
+    subgraph "AI 時代的延伸"
         B1["註解是戰略溝通工具"] --> B2["人類 + AI 雙向溝通"]
         B2 --> B3["Comment-Driven Development"]
     end
 
-    A3 -.->|演化| B1
+    A3 -.->|延伸強化| B1
 
-    style A1 fill:#d44,stroke:#a22,color:#fff
+    style A1 fill:#f90,stroke:#c60,color:#fff
     style B1 fill:#2d5,stroke:#1a3,color:#fff
 ```
 
-| 維度 | Clean Code 傳統 | AI 時代最佳實踐 |
+> **釐清 Clean Code 原意**：Clean Code 常被簡化為「反對一切註解」，但 Robert Martin 原書第四章明確推薦了意圖說明、法律聲明、TODO、警告等「好的註解」。他真正反對的是用註解來補救糟糕的命名和結構。AI 時代的變化不是推翻這個立場，而是**大幅擴展了「好的註解」的範疇**。
+
+| 維度 | Clean Code 傳統 | AI 時代延伸 |
 |------|----------------|----------------|
-| **核心態度** | 註解 = 程式碼不夠清晰的補償 | 註解 = 人機溝通的關鍵通道 |
-| **內容焦點** | 避免解釋「做什麼」 | 專注解釋「為什麼」和「意圖」 |
+| **核心態度** | 壞註解不如不寫；好命名減少註解需求 | 註解的受眾和用途擴大了 |
+| **內容焦點** | 避免解釋「做什麼」，推薦解釋「為什麼」 | 延伸：加入業務上下文、AI 邊界標記 |
 | **維護問題** | 註解容易過時 | AI 可即時監控程式碼與註解一致性 |
-| **對象** | 僅為人類讀者 | 人類 + AI 雙重讀者 |
-| **數量** | 越少越好 | 品質重於數量，但不吝嗇 |
+| **對象** | 主要為人類讀者 | 人類 + AI 雙重讀者 |
+| **數量** | 品質優先，不寫無用註解 | 品質優先，但「有用」的定義擴大了 |
 
 > 「程式碼註解辯論已經結束（AI 贏了）。」
 > — [Revelry](https://revelry.co/insights/code-comment-debate-ai/)
@@ -376,6 +383,8 @@ graph TB
 > 「垂直切片架構特別適合 AI，因為每個切片包含該功能的所有必要組件。AI 工具可以更容易地理解和修改自包含的功能。」
 > — [Rick Hightower](https://medium.com/@richardhightower/ai-optimizing-codebase-architecture-for-ai-coding-tools-ff6bb6fdc497)
 
+> **重要補充**：垂直切片和分層架構並非互斥。實務上最有效的做法是**頂層按功能組織（垂直切片），每個 slice 內部仍遵循分層架構**（Domain → Application → Adapters）。這樣既保持 AI 的上下文集中性，又維護架構的依賴規則。
+
 ### 3.2 檔案大小與 AI 效能
 
 ```mermaid
@@ -441,7 +450,7 @@ Stanford 和 UC Berkeley 的研究揭示了一個 AI 的根本限制：
 graph LR
     subgraph "AI 注意力分佈"
         direction LR
-        A["🟢 開頭<br/>注意力高"] --- B["🔴 中間<br/>注意力低<br/>(Lost-in-the-Middle)"] --- C["🟢 結尾<br/>注意力高"]
+        A["開頭<br/>注意力高"] --- B["中間<br/>注意力低<br/>(Lost-in-the-Middle)"] --- C["結尾<br/>注意力高"]
     end
 
     D["實務影響：模型正確性在<br/>~32,000 tokens 後顯著下降"]
@@ -585,7 +594,7 @@ flowchart TD
 | **GitHub Copilot** | 上下文限制 64k-128k token 的自動管理 | 無需操作 |
 
 > Claude Code 自 2.0 起，壓縮引擎以 92% 保真度保留結構化提示，敘述性提示則為 71%。
-> — [Steve Kinney](https://stevekinney.com/courses/ai-development/claude-code-compaction)
+> — [Steve Kinney](https://stevekinney.com/courses/ai-development/claude-code-compaction)（非 Anthropic 官方數據，為社群測量結果）
 
 #### 需要開發者手動介入的優化
 
@@ -839,22 +848,22 @@ async def process_order(
 
 ```mermaid
 graph TD
-    subgraph "仍然有效 ✅"
+    subgraph "仍然有效"
         V1["有意義的命名"]
         V2["單一職責原則（適度）"]
         V3["一致的格式"]
         V4["錯誤處理"]
     end
 
-    subgraph "需要調整 ⚠️"
-        W1["函式越小越好<br/>→ 需平衡效能"]
-        W2["註解是失敗的標誌<br/>→ 註解是戰略工具"]
+    subgraph "需要調整"
+        W1["函式越小越好<br/>→ 需平衡效能和 context 開銷"]
+        W2["註解品質優先<br/>→ 延伸：AI 上下文也是品質目標"]
         W3["過度解耦<br/>→ 增加 AI context 開銷"]
     end
 
-    subgraph "需要重新思考 🔄"
+    subgraph "需要延伸"
         X1["僅以 OOP 思考<br/>→ 函式優先"]
-        X2["自文件化就足夠<br/>→ 需要 AGENTS.md"]
+        X2["自文件化就足夠<br/>→ 需要 AGENTS.md 等指令檔"]
     end
 ```
 
@@ -932,14 +941,14 @@ xychart-beta
 ```mermaid
 flowchart TD
     A[是否應該重複程式碼？] --> B{不同團隊擁有？}
-    B -->|是| C["✅ 保持分離"]
+    B -->|是| C["保持分離"]
     B -->|否| D{業務邏輯會分歧？}
-    D -->|是| E["✅ 接受重複"]
+    D -->|是| E["接受重複"]
     D -->|否| F{抽象比重複複雜？}
-    F -->|是| G["✅ 允許重複"]
+    F -->|是| G["允許重複"]
     F -->|否| H{重新生成比修改快？}
-    H -->|是| I["✅ 允許重複"]
-    H -->|否| J["❌ 抽象化"]
+    H -->|是| I["允許重複"]
+    H -->|否| J["抽象化"]
 
     style C fill:#2d5,stroke:#1a3,color:#fff
     style J fill:#28f,stroke:#17d,color:#fff
@@ -951,14 +960,14 @@ flowchart TD
 
 | 傳統原則 | Clean Code 立場 | AI 時代演化 | 變化方向 |
 |----------|----------------|------------|---------|
-| **命名** | 有意義、可發音 | 更長更描述性，一致性最重要 | 🔼 加強 |
-| **函式大小** | 越小越好，只做一件事 | 需平衡效能和 context 開銷 | ⚠️ 調整 |
-| **註解** | 失敗的標誌 | 戰略溝通工具 | 🔄 翻轉 |
-| **DRY** | 絕對不重複 | 策略性重複可能更優 | ⚠️ 放鬆 |
-| **SOLID** | 嚴格遵守 | 根據上下文重新詮釋 | ⚠️ 調整 |
-| **型別** | 視語言而定 | 幾乎是必需的安全機制 | 🔼 加強 |
-| **自文件化** | 好程式碼不需要註解 | 不夠——需要 AGENTS.md + 意圖註解 | 🔄 翻轉 |
-| **格式化** | 一致且美觀 | 人類看的保持美觀；餵給 AI 的可壓縮 | ⚠️ 情境化 |
+| **命名** | 有意義、可發音 | 更長更描述性，一致性最重要 | 加強 |
+| **函式大小** | 越小越好，只做一件事 | 需平衡效能和 context 開銷 | 調整 |
+| **註解** | 品質優先，推薦意圖註解 | 延伸：AI 上下文也是註解的受眾 | 延伸強化 |
+| **DRY** | 不重複 | 策略性重複可能更優 | 放鬆 |
+| **SOLID** | 嚴格遵守 | 根據上下文重新詮釋 | 調整 |
+| **型別** | 視語言而定 | 幾乎是必需的安全機制 | 加強 |
+| **自文件化** | 好命名減少註解需求 | 不夠——需要 AGENTS.md + 意圖註解 | 延伸 |
+| **格式化** | 一致且美觀 | 人類看的保持美觀；餵給 AI 的可壓縮 | 情境化 |
 
 ---
 
@@ -976,7 +985,7 @@ graph TB
     A --> G[".junie/guidelines.md<br/>(JetBrains Junie)"]
 
     B --> H["每次 session 自動讀取<br/>持久記憶機制"]
-    C --> I["60,000+ repos 採用<br/>Linux Foundation 管理"]
+    C --> I["60,000+ repos 採用<br/>Linux Foundation 管理<br/>(截至 2025 年底)"]
     F --> J["類似 robots.txt<br/>告訴 AI 讀什麼"]
 
     style C fill:#2d5,stroke:#1a3,color:#fff
@@ -1128,9 +1137,6 @@ After completing review, provide:
 - Any concerns or recommendations
 ```
 
-> 「大多數代理文件失敗是因為它們太模糊。一個展示風格的真實程式碼片段勝過三段描述。」
-> — [GitHub Blog](https://github.blog/ai-and-ml/github-copilot/how-to-write-a-great-agents-md-lessons-from-over-2500-repositories/)
-
 ### 7.7 配置檔生態系對比
 
 | 配置檔 | 適用工具 | 核心用途 | 建議長度 |
@@ -1275,6 +1281,13 @@ graph TD
     style D fill:#2d5,stroke:#1a3,color:#fff
 ```
 
+### 8.6 延伸閱讀：AI Agent 可觀測性
+
+當 AI agent 自主修改程式碼時，「看見它做了什麼」比「相信它做得對」更重要。追蹤、審計和回滾能力是分層信任策略的基礎設施支撐。
+
+> 完整的 AI Agent 可觀測性架構、工具選型和實作指南，請參閱本系列的姊妹文章：
+> [AI Agent 可觀測性實戰指南](./ai-agent-observability-guide.md)
+
 ---
 
 ## 九、實戰工作流程
@@ -1375,7 +1388,7 @@ flowchart TD
 
 | 類別 | 檢查點 | 為什麼重要 |
 |------|--------|-----------|
-| **理解度** | 你能解釋每一行嗎？ | 59% 開發者使用不理解的 AI 程式碼 |
+| **理解度** | 你能解釋每一行嗎？ | 多數開發者無法解釋自己合併的 AI 程式碼 |
 | **安全性** | 無硬編碼密鑰？認證檢查？ | AI 程式碼安全缺陷率 45% |
 | **邊界案例** | null 檢查？早期返回？異常處理？ | AI 最常遺漏這些 |
 | **整合** | 符合現有模式？不破壞其他模組？ | AI 在孤立環境下工作 |
@@ -1390,7 +1403,7 @@ flowchart TD
 ```mermaid
 graph TD
     subgraph "反模式"
-        X1["盲目貼上 AI 程式碼"] --> X1a["59% 開發者這樣做"]
+        X1["盲目貼上 AI 程式碼"] --> X1a["多數開發者這樣做"]
         X2["一次生成大區塊"] --> X2a["隱藏錯誤、破壞依賴"]
         X3["跳過上下文思考"] --> X3a["直接要求寫程式碼"]
         X4["長時間自主運行"] --> X4a["錯誤和幻覺複合"]
@@ -1427,9 +1440,9 @@ graph TD
 graph TD
     A[程式碼分層品質策略]
 
-    A --> B["🔴 核心層<br/>(認證/支付/安全)"]
-    A --> C["🟡 業務邏輯層<br/>(API/領域邏輯)"]
-    A --> D["🟢 常規處理層<br/>(CRUD/樣板)"]
+    A --> B["核心層<br/>(認證/支付/安全)"]
+    A --> C["業務邏輯層<br/>(API/領域邏輯)"]
+    A --> D["常規處理層<br/>(CRUD/樣板)"]
 
     B --> B1["嚴格 Clean Code"]
     B --> B2["強制「為什麼」註解"]
